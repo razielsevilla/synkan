@@ -1,0 +1,68 @@
+@import '@fontsource/anton';
+@import '@fontsource/work-sans/300.css';
+@import '@fontsource/work-sans/400.css';
+@import '@fontsource/work-sans/500.css';
+@import '@fontsource/work-sans/600.css';
+@import '@fontsource/work-sans/700.css';
+@import '@fontsource/work-sans/800.css';
+@import '@fontsource/jetbrains-mono/400.css';
+@import '@fontsource/jetbrains-mono/500.css';
+@import '@fontsource/jetbrains-mono/700.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    font-family: 'Work Sans', sans-serif;
+    background-color: #F5F2EA;
+    color: #0A0A0A;
+    overflow-x: hidden;
+  }
+
+  h1,
+  h2,
+  h3,
+  .font-anton {
+    font-family: 'Anton', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+}
+
+@layer utilities {
+  /* Custom scrollbars utilizing brand accent color from image_d17462.png */
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: #F5F2EA;
+    border-left: 2px solid #0A0A0A;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: #0A0A0A;
+    border: 2px solid #F5F2EA;
+    border-radius: 4px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: #1E3A8A;
+  }
+
+  /* High-contrast interactive elements */
+  .brutal-card {
+    background-color: #FFFFFF;
+    border: 2px solid #0A0A0A;
+    box-shadow: 4px 4px 0px 0px #0A0A0A;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .brutal-card:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: 6px 6px 0px 0px #0A0A0A;
+  }
+}

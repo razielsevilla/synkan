@@ -1,0 +1,1113 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Synkan — Local-First, Peer-to-Peer Kanban Engine</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Anton (Headlines) & Work Sans (Body) & JetBrains Mono (Terminal/Code) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Anton&family=Work+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap"
+        rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Work Sans', 'sans-serif'],
+                        anton: ['Anton', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    colors: {
+                        brand: {
+                            bg: '#F5F2EA',         /* Warm Off-White Background */
+                            text: '#0A0A0A',       /* Deep Obsidian Black */
+                            primary: '#1E3A8A',    /* Royal Blue */
+                            accent: '#E52B50',     /* Rose Amaranth Red */
+                            surface: '#FFD700',    /* Bright Gold/Yellow */
+                            border: '#D1D1D1'      /* Light Neutral Grey */
+                        }
+                    },
+                    boxShadow: {
+                        // Neo-brutalist structural shadows from image_d17462.png aesthetic
+                        'brutal': '4px 4px 0px 0px #0A0A0A',
+                        'brutal-lg': '8px 8px 0px 0px #0A0A0A',
+                        'brutal-sm': '2px 2px 0px 0px #0A0A0A',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Work Sans', sans-serif;
+            background-color: #F5F2EA;
+            color: #0A0A0A;
+            overflow-x: hidden;
+        }
+
+        h1,
+        h2,
+        h3,
+        .font-anton {
+            font-family: 'Anton', sans-serif;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+        }
+
+        /* Custom scrollbars utilizing brand accent color from image_d17462.png */
+        ::-webkit-scrollbar {
+            width: 10px;
+            height: 10px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #F5F2EA;
+            border-left: 2px solid #0A0A0A;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #0A0A0A;
+            border: 2px solid #F5F2EA;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #1E3A8A;
+        }
+
+        /* High-contrast interactive elements */
+        .brutal-card {
+            background-color: #FFFFFF;
+            border: 2px solid #0A0A0A;
+            box-shadow: 4px 4px 0px 0px #0A0A0A;
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .brutal-card:hover {
+            transform: translate(-2px, -2px);
+            box-shadow: 6px 6px 0px 0px #0A0A0A;
+        }
+    </style>
+</head>
+
+<body class="selection:bg-brand-surface selection:text-brand-text">
+
+    <header class="sticky top-0 z-50 w-full border-b-4 border-brand-text bg-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div
+                    class="w-12 h-12 rounded-xl bg-brand-surface border-2 border-brand-text flex items-center justify-center shadow-brutal-sm">
+                    <span class="font-anton text-2xl text-brand-text">S</span>
+                </div>
+                <div>
+                    <span class="font-anton text-3xl tracking-wide text-brand-text">Synkan</span>
+                    <span
+                        class="ml-2 inline-flex items-center px-2 py-0.5 rounded border border-brand-text text-[10px] font-mono bg-brand-surface font-bold text-brand-text">P2P
+                        Core</span>
+                </div>
+            </div>
+
+            <nav
+                class="hidden md:flex items-center space-x-8 text-sm font-bold uppercase tracking-wider text-brand-text">
+                <a href="#why" class="hover:text-brand-primary transition-colors">The Paradigm</a>
+                <a href="#sandbox" class="hover:text-brand-accent transition-colors flex items-center space-x-2">
+                    <span>Interactive Sandbox</span>
+                    <span class="w-2.5 h-2.5 rounded-full bg-brand-accent animate-ping"></span>
+                </a>
+                <a href="#deep-dive" class="hover:text-brand-primary transition-colors">Architecture</a>
+                <a href="#tech-stack" class="hover:text-brand-primary transition-colors">Specs</a>
+            </nav>
+
+            <div class="flex items-center space-x-4">
+                <a href="#sandbox"
+                    class="inline-flex items-center justify-center px-5 py-2.5 text-xs font-black tracking-wider text-brand-text uppercase bg-brand-surface border-2 border-brand-text rounded-xl shadow-brutal-sm hover:translate-y-[-2px] hover:shadow-brutal active:translate-y-[2px] active:shadow-none transition-all">
+                    Launch Sandbox
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <section class="relative pt-16 pb-20 md:pt-28 md:pb-32 overflow-hidden border-b-4 border-brand-text bg-white">
+        <!-- Visual design grid accents mimicking brutalist blueprints -->
+        <div class="absolute inset-0 opacity-[0.03] pointer-events-none"
+            style="background-image: radial-gradient(#0A0A0A 1px, transparent 1px); background-size: 24px 24px;"></div>
+
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+
+            <!-- Highly visual Neo-Brutalist Header using Anton Font -->
+            <h1 class="text-5xl sm:text-7xl lg:text-8xl font-anton tracking-tight mb-8 leading-[0.95] text-brand-text">
+                The Serverless, Local-First <br />
+                <span
+                    class="bg-brand-surface border-2 border-brand-text px-4 py-1 inline-block my-2 shadow-brutal transform -rotate-1">
+                    P2P Kanban Engine
+                </span>
+            </h1>
+
+            <p class="max-w-3xl mx-auto text-lg sm:text-xl text-zinc-700 mb-10 leading-relaxed font-medium">
+                Ditch centralized servers. Synkan makes your client browser the source of truth, employing
+                high-speed local storage, WebRTC direct routing, and Conflict-Free Replicated Data Types (CRDTs).
+            </p>
+
+            <!-- Striking Neo-Brutalist Call-to-Actions -->
+            <div
+                class="flex flex-col sm:flex-row items-center justify-center space-y-4 sm:space-y-0 sm:space-x-6 mb-16">
+                <a href="#sandbox"
+                    class="w-full sm:w-auto px-8 py-5 text-base font-black uppercase tracking-wider text-brand-text bg-brand-surface border-2 border-brand-text rounded-xl shadow-brutal hover:translate-y-[-2px] hover:shadow-brutal-lg active:translate-y-[2px] active:shadow-none transition-all">
+                    Interact with Peer Simulation
+                </a>
+                <a href="#why"
+                    class="w-full sm:w-auto px-8 py-5 text-base font-bold uppercase tracking-wider text-brand-text bg-white border-2 border-brand-text rounded-xl shadow-brutal hover:translate-y-[-2px] hover:shadow-brutal-lg hover:bg-brand-bg active:translate-y-[2px] active:shadow-none transition-all">
+                    Explore Architecture
+                </a>
+            </div>
+
+            <!-- Board Preview Mockup mimicking image_d17462.png colors -->
+            <div class="relative max-w-5xl mx-auto mt-6">
+                <div class="absolute -inset-2 bg-brand-primary rounded-2xl -z-10 border-2 border-brand-text"></div>
+                <div
+                    class="bg-[#FFFFFF] rounded-2xl border-2 border-brand-text shadow-brutal-lg p-5 overflow-hidden text-left">
+
+                    <!-- Board Header Bar -->
+                    <div
+                        class="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b-2 border-brand-text mb-6 gap-2">
+                        <div class="flex items-center space-x-2">
+                            <span class="w-3.5 h-3.5 rounded-full bg-brand-accent border border-brand-text"></span>
+                            <span class="w-3.5 h-3.5 rounded-full bg-brand-surface border border-brand-text"></span>
+                            <span class="w-3.5 h-3.5 rounded-full bg-brand-primary border border-brand-text"></span>
+                            <span
+                                class="text-xs font-mono font-bold tracking-wider uppercase ml-2 text-zinc-500">Workspace
+                                / Synkan-Local-Mesh</span>
+                        </div>
+                        <div
+                            class="flex items-center space-x-3 text-brand-text font-mono text-xs font-bold self-start sm:self-auto">
+                            <span
+                                class="inline-flex items-center px-2 py-1 bg-brand-surface rounded border border-brand-text">
+                                <span class="w-2 h-2 rounded-full bg-brand-accent animate-ping mr-2"></span>
+                                3 peers established
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Columns Layout -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+                        <!-- Col 1: Backlog -->
+                        <div class="bg-brand-bg p-4 rounded-xl border-2 border-brand-text">
+                            <div class="flex items-center justify-between mb-4 pb-2 border-b-2 border-brand-text">
+                                <span class="font-anton text-lg text-brand-text">Backlog</span>
+                                <span
+                                    class="text-[10px] font-mono bg-brand-primary text-white px-2 py-0.5 rounded border border-brand-text">SQLITE
+                                    WASM</span>
+                            </div>
+                            <div class="space-y-3">
+                                <div
+                                    class="bg-white p-4 rounded-lg border-2 border-brand-text shadow-brutal-sm hover:translate-y-[-2px] transition-transform">
+                                    <div class="text-xs font-bold font-mono text-brand-primary uppercase mb-1">Task 101
+                                    </div>
+                                    <div class="text-sm font-bold text-brand-text leading-snug">Implement Automerge
+                                        cryptographic binary vector structures</div>
+                                </div>
+                                <div
+                                    class="bg-white p-4 rounded-lg border-2 border-brand-text shadow-brutal-sm hover:translate-y-[-2px] transition-transform">
+                                    <div class="text-xs font-bold font-mono text-brand-accent uppercase mb-1">Task 102
+                                    </div>
+                                    <div class="text-sm font-bold text-brand-text leading-snug">Verify fractional
+                                        indexing midpoints on offline nodes</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Col 2: In Progress -->
+                        <div class="bg-brand-bg p-4 rounded-xl border-2 border-brand-text">
+                            <div class="flex items-center justify-between mb-4 pb-2 border-b-2 border-brand-text">
+                                <span class="font-anton text-lg text-brand-text">In Progress</span>
+                                <span
+                                    class="text-[10px] font-mono bg-brand-surface text-brand-text px-2 py-0.5 rounded border border-brand-text">ACTIVE
+                                    P2P</span>
+                            </div>
+                            <div class="bg-white p-4 rounded-lg border-2 border-brand-accent shadow-brutal-sm">
+                                <div class="text-xs font-bold font-mono text-brand-accent uppercase mb-1">TASK 103 —
+                                    LIVE STREAM</div>
+                                <div class="text-sm font-bold text-brand-text leading-snug mb-3">Sync local persistence
+                                    state arrays via ad-hoc channels</div>
+                                <div
+                                    class="w-full bg-brand-bg rounded-full h-2 border border-brand-text overflow-hidden">
+                                    <div class="bg-brand-accent h-full w-[70%]"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Col 3: Completed -->
+                        <div class="bg-brand-bg p-4 rounded-xl border-2 border-brand-text opacity-75">
+                            <div class="flex items-center justify-between mb-4 pb-2 border-b-2 border-brand-text">
+                                <span class="font-anton text-lg text-brand-text">Completed</span>
+                                <span
+                                    class="text-[10px] font-mono bg-[#D1D1D1] text-brand-text px-2 py-0.5 rounded border border-brand-text">RESOLVED</span>
+                            </div>
+                            <div class="space-y-3">
+                                <div
+                                    class="bg-white p-4 rounded-lg border border-brand-text line-through text-zinc-500">
+                                    Wasm compiled SQLite environment tests
+                                </div>
+                                <div
+                                    class="bg-white p-4 rounded-lg border border-brand-text line-through text-zinc-500">
+                                    Determine Soft-Deletion Tombstone rules
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <section id="why" class="py-20 border-b-4 border-brand-text bg-brand-bg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center max-w-3xl mx-auto mb-16">
+                <span
+                    class="px-3 py-1 text-xs font-bold uppercase tracking-widest bg-brand-accent text-white border-2 border-brand-text rounded-md shadow-brutal-sm inline-block mb-4">CRITICAL
+                    COMPARISON</span>
+                <h2 class="text-4xl sm:text-5xl font-anton text-brand-text tracking-wide">
+                    Centralized Cloud Tax vs. True Local Autonomy
+                </h2>
+                <p class="text-zinc-700 mt-4 text-base sm:text-lg font-medium leading-relaxed">
+                    Our current cloud tools (Trello, Jira, Notion) bind users to physical server clusters. Synkan
+                    rejects this structural tether.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-stretch">
+
+                <!-- Cloud Problem Panel -->
+                <div
+                    class="bg-white border-2 border-brand-text p-8 rounded-2xl shadow-brutal flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center space-x-3 mb-6 pb-4 border-b-2 border-brand-text">
+                            <div
+                                class="w-10 h-10 bg-brand-accent text-white rounded-lg border-2 border-brand-text flex items-center justify-center font-bold font-anton text-lg">
+                                !</div>
+                            <h4 class="text-2xl font-anton text-brand-text">The Centralized Cloud Tax</h4>
+                        </div>
+
+                        <div class="space-y-6">
+                            <div class="flex items-start space-x-4">
+                                <span
+                                    class="bg-brand-accent/10 text-brand-accent font-mono font-black border border-brand-accent px-2 py-1 text-xs rounded">1</span>
+                                <div>
+                                    <h5 class="text-base font-bold text-brand-text">Hard Network Interdependence</h5>
+                                    <p class="text-xs text-zinc-600 mt-1 leading-relaxed">Minor offline states (tunnels,
+                                        trains, cellular gaps) trigger endless loading screens and freeze the interface.
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="flex items-start space-x-4">
+                                <span
+                                    class="bg-brand-accent/10 text-brand-accent font-mono font-black border border-brand-accent px-2 py-1 text-xs rounded">2</span>
+                                <div>
+                                    <h5 class="text-base font-bold text-brand-text">Corporate Surveillance & Data Risk
+                                    </h5>
+                                    <p class="text-xs text-zinc-600 mt-1 leading-relaxed">Strategic corporate planning
+                                        matrices reside inside multi-tenant hardware, subject to scrapers, security
+                                        leaks, and AI training.</p>
+                                </div>
+                            </div>
+                            <div class="flex items-start space-x-4">
+                                <span
+                                    class="bg-brand-accent/10 text-brand-accent font-mono font-black border border-brand-accent px-2 py-1 text-xs rounded">3</span>
+                                <div>
+                                    <h5 class="text-base font-bold text-brand-text">Exponential Scaling Infrastructure
+                                        Cost</h5>
+                                    <p class="text-xs text-zinc-600 mt-1 leading-relaxed">Broadcasting states via
+                                        WebSockets requires continuous hosting expenditure, scaling costs as teams grow.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div
+                        class="mt-8 pt-6 border-t-2 border-brand-text flex justify-between items-center text-xs font-mono font-bold text-zinc-500">
+                        <span>Central Database Architecture</span>
+                        <span class="text-brand-accent">⚠️ Single Point of Failure</span>
+                    </div>
+                </div>
+
+                <!-- Synkan Solution Panel -->
+                <div
+                    class="bg-brand-surface border-2 border-brand-text p-8 rounded-2xl shadow-brutal flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center space-x-3 mb-6 pb-4 border-b-2 border-brand-text">
+                            <div
+                                class="w-10 h-10 bg-brand-primary text-white rounded-lg border-2 border-brand-text flex items-center justify-center font-bold font-anton text-lg">
+                                ✓</div>
+                            <h4 class="text-2xl font-anton text-brand-text">Local-First Autonomy</h4>
+                        </div>
+
+                        <div class="space-y-6">
+                            <div class="flex items-start space-x-4">
+                                <span
+                                    class="bg-brand-primary text-white font-mono font-black border border-brand-text px-2 py-1 text-xs rounded">1</span>
+                                <div>
+                                    <h5 class="text-base font-bold text-brand-text">Network-Agnostic, 60fps Execution
+                                    </h5>
+                                    <p class="text-xs text-brand-text/80 mt-1 leading-relaxed">No network lag. Instant
+                                        file system flushes mean seamless offline tracking and immediate responsive
+                                        rendering.</p>
+                                </div>
+                            </div>
+                            <div class="flex items-start space-x-4">
+                                <span
+                                    class="bg-brand-primary text-white font-mono font-black border border-brand-text px-2 py-1 text-xs rounded">2</span>
+                                <div>
+                                    <h5 class="text-base font-bold text-brand-text">Cryptographic Privacy & Total
+                                        Ownership</h5>
+                                    <p class="text-xs text-brand-text/80 mt-1 leading-relaxed">Your data remains in your
+                                        custody. Handshakes and synchronizations deploy secure, peer-encrypted WebRTC
+                                        nodes.</p>
+                                </div>
+                            </div>
+                            <div class="flex items-start space-x-4">
+                                <span
+                                    class="bg-brand-primary text-white font-mono font-black border border-brand-text px-2 py-1 text-xs rounded">3</span>
+                                <div>
+                                    <h5 class="text-base font-bold text-brand-text">Zero-Cost Scaling Engine</h5>
+                                    <p class="text-xs text-brand-text/80 mt-1 leading-relaxed">Because every member acts
+                                        as a server node, the static HTML files run serverless and host for free
+                                        indefinitely.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div
+                        class="mt-8 pt-6 border-t-2 border-brand-text flex justify-between items-center text-xs font-mono font-bold text-brand-text">
+                        <span>P2P Cryptographic Mesh Topology</span>
+                        <span class="text-brand-primary">⚙️ Infinite scale</span>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <section id="sandbox" class="py-20 border-b-4 border-brand-text bg-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center max-w-3xl mx-auto mb-12">
+                <span
+                    class="px-3 py-1.5 text-xs font-black uppercase tracking-widest bg-brand-surface text-brand-text border-2 border-brand-text rounded-md shadow-brutal-sm inline-block mb-3 font-mono">REAL-TIME
+                    SANDBOX</span>
+                <h2 class="text-4xl sm:text-5xl font-anton text-brand-text tracking-wide">
+                    Live CRDT Vector Synchronization Simulation
+                </h2>
+                <p class="text-zinc-700 mt-4 text-sm sm:text-base font-medium leading-relaxed">
+                    Test the mechanics of Conflict-Free Replicated Data Types (CRDTs). Cut the WebRTC connection, make
+                    divergent changes on Alice's or Bob's isolated browser states, then reconnect to observe how local
+                    state conflicts resolve automatically!
+                </p>
+            </div>
+
+            <!-- Controller panel and connectivity status -->
+            <div class="bg-brand-bg border-2 border-brand-text p-6 rounded-2xl mb-10 shadow-brutal max-w-4xl mx-auto">
+                <div class="flex flex-col md:flex-row items-center justify-between gap-6">
+                    <div>
+                        <span class="text-xs text-zinc-500 font-mono tracking-widest font-bold uppercase">WEBRTC
+                            TRANSPORT CHANNEL STATUS</span>
+                        <div class="flex items-center space-x-3 mt-1">
+                            <span id="link-indicator-dot"
+                                class="w-4 h-4 rounded-full bg-brand-primary border-2 border-brand-text animate-pulse"></span>
+                            <span id="link-indicator-text"
+                                class="text-lg font-anton tracking-wide text-brand-primary">CONNECTED (MESH
+                                STABLE)</span>
+                        </div>
+                    </div>
+
+                    <div class="flex flex-wrap items-center gap-3 w-full md:w-auto">
+                        <button id="btn-toggle-connection" onclick="togglePeerConnection()"
+                            class="flex-1 md:flex-initial px-6 py-3.5 text-xs font-black tracking-wider uppercase bg-brand-accent text-white border-2 border-brand-text hover:translate-y-[-2px] hover:shadow-brutal active:translate-y-[2px] active:shadow-none shadow-brutal-sm rounded-xl transition-all flex items-center justify-center space-x-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
+                            </svg>
+                            <span id="btn-toggle-connection-text">Simulate Network Drop</span>
+                        </button>
+                        <button id="btn-force-sync" onclick="forcePeerSync()"
+                            class="hidden flex-1 md:flex-initial px-6 py-3.5 text-xs font-black tracking-wider uppercase bg-brand-surface text-brand-text border-2 border-brand-text hover:translate-y-[-2px] hover:shadow-brutal active:translate-y-[2px] active:shadow-none shadow-brutal-sm rounded-xl items-center justify-center space-x-2">
+                            <svg class="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M4 4v5h.582m15.356 2A8.001 8.001 0 1121.253 8H18" />
+                            </svg>
+                            <span>Reconnect & Sync</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Side-by-Side Peer Emulation -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+
+                <!-- PEER A (ALICE) -->
+                <div class="bg-white rounded-2xl border-2 border-brand-text overflow-hidden shadow-brutal relative">
+                    <!-- Top accent bar -->
+                    <div class="h-2 bg-brand-primary"></div>
+
+                    <div
+                        class="p-4 bg-brand-bg border-b-2 border-brand-text flex flex-wrap justify-between items-center gap-2">
+                        <div class="flex items-center space-x-2">
+                            <span class="w-3 h-3 rounded-full bg-brand-primary border border-brand-text"></span>
+                            <span class="font-anton text-lg tracking-wider text-brand-text">Device A (Alice)</span>
+                        </div>
+                        <span
+                            class="text-[10px] font-mono bg-white text-brand-primary font-bold border border-brand-text px-2 py-0.5 rounded">ID:
+                            @peer/alice-7a3b</span>
+                    </div>
+
+                    <div class="p-5">
+                        <div class="flex items-center justify-between mb-4">
+                            <span class="text-xs text-zinc-600 font-bold font-mono">LOCAL BOARD INSTANCE:</span>
+                            <button onclick="addNewCard('A')"
+                                class="px-3 py-1.5 text-xs font-black text-brand-text bg-brand-surface border-2 border-brand-text rounded hover:translate-y-[-1px] hover:shadow-brutal-sm transition-all flex items-center space-x-1">
+                                <span>+ Create Card</span>
+                            </button>
+                        </div>
+
+                        <!-- Side mini columns -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <!-- Backlog Column -->
+                            <div class="bg-brand-bg p-3 rounded-lg border-2 border-brand-text">
+                                <span
+                                    class="text-[10px] font-mono font-extrabold tracking-wider uppercase text-zinc-600 block mb-2 pb-1 border-b border-brand-text">BACKLOG</span>
+                                <div id="peerA-col-backlog" class="space-y-2 min-h-[160px] flex flex-col justify-start">
+                                    <!-- Populated dynamically -->
+                                </div>
+                            </div>
+                            <!-- In Progress Column -->
+                            <div class="bg-brand-bg p-3 rounded-lg border-2 border-brand-text">
+                                <span
+                                    class="text-[10px] font-mono font-extrabold tracking-wider uppercase text-brand-primary block mb-2 pb-1 border-b border-brand-text">IN
+                                    PROGRESS</span>
+                                <div id="peerA-col-progress"
+                                    class="space-y-2 min-h-[160px] flex flex-col justify-start">
+                                    <!-- Populated dynamically -->
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Logs Section -->
+                        <div class="mt-6 pt-4 border-t-2 border-brand-text">
+                            <div class="flex items-center justify-between mb-2">
+                                <span
+                                    class="text-[10px] text-zinc-500 font-mono uppercase tracking-wider font-bold">Local
+                                    Mutation Journal</span>
+                                <span id="peerA-db-status"
+                                    class="text-[9px] text-brand-primary font-mono font-bold">SQLITE CACHE ACTIVE</span>
+                            </div>
+                            <div id="peerA-logs"
+                                class="bg-brand-text text-[#F5F2EA] p-4 rounded-lg font-mono text-[10px] h-32 overflow-y-auto space-y-1">
+                                <!-- Logs populated dynamically -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PEER B (BOB) -->
+                <div class="bg-white rounded-2xl border-2 border-brand-text overflow-hidden shadow-brutal relative">
+                    <!-- Top accent bar -->
+                    <div class="h-2 bg-brand-accent"></div>
+
+                    <div
+                        class="p-4 bg-brand-bg border-b-2 border-brand-text flex flex-wrap justify-between items-center gap-2">
+                        <div class="flex items-center space-x-2">
+                            <span class="w-3 h-3 rounded-full bg-brand-accent border border-brand-text"></span>
+                            <span class="font-anton text-lg tracking-wider text-brand-text">Device B (Bob)</span>
+                        </div>
+                        <span
+                            class="text-[10px] font-mono bg-white text-brand-accent font-bold border border-brand-text px-2 py-0.5 rounded">ID:
+                            @peer/bob-c812</span>
+                    </div>
+
+                    <div class="p-5">
+                        <div class="flex items-center justify-between mb-4">
+                            <span class="text-xs text-zinc-600 font-bold font-mono">LOCAL BOARD INSTANCE:</span>
+                            <button onclick="addNewCard('B')"
+                                class="px-3 py-1.5 text-xs font-black text-brand-text bg-brand-surface border-2 border-brand-text rounded hover:translate-y-[-1px] hover:shadow-brutal-sm transition-all flex items-center space-x-1">
+                                <span>+ Create Card</span>
+                            </button>
+                        </div>
+
+                        <!-- Side mini columns -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <!-- Backlog Column -->
+                            <div class="bg-brand-bg p-3 rounded-lg border-2 border-brand-text">
+                                <span
+                                    class="text-[10px] font-mono font-extrabold tracking-wider uppercase text-zinc-600 block mb-2 pb-1 border-b border-brand-text">BACKLOG</span>
+                                <div id="peerB-col-backlog" class="space-y-2 min-h-[160px] flex flex-col justify-start">
+                                    <!-- Populated dynamically -->
+                                </div>
+                            </div>
+                            <!-- In Progress Column -->
+                            <div class="bg-brand-bg p-3 rounded-lg border-2 border-brand-text">
+                                <span
+                                    class="text-[10px] font-mono font-extrabold tracking-wider uppercase text-brand-accent block mb-2 pb-1 border-b border-brand-text">IN
+                                    PROGRESS</span>
+                                <div id="peerB-col-progress"
+                                    class="space-y-2 min-h-[160px] flex flex-col justify-start">
+                                    <!-- Populated dynamically -->
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Logs Section -->
+                        <div class="mt-6 pt-4 border-t-2 border-brand-text">
+                            <div class="flex items-center justify-between mb-2">
+                                <span
+                                    class="text-[10px] text-zinc-500 font-mono uppercase tracking-wider font-bold">Local
+                                    Mutation Journal</span>
+                                <span id="peerB-db-status"
+                                    class="text-[9px] text-brand-accent font-mono font-bold">SQLITE CACHE ACTIVE</span>
+                            </div>
+                            <div id="peerB-logs"
+                                class="bg-brand-text text-[#F5F2EA] p-4 rounded-lg font-mono text-[10px] h-32 overflow-y-auto space-y-1">
+                                <!-- Logs populated dynamically -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Interactive Guidelines Card -->
+            <div
+                class="mt-10 bg-brand-surface border-2 border-brand-text rounded-2xl p-6 shadow-brutal flex flex-col sm:flex-row gap-4 items-start max-w-4xl mx-auto text-left">
+                <div
+                    class="p-3 bg-brand-primary text-white border-2 border-brand-text rounded-xl font-anton text-xl leading-none">
+                    !
+                </div>
+                <div>
+                    <h5 class="text-sm font-black uppercase tracking-wider font-mono text-brand-text mb-2">How to test
+                        peer conflicts in this simulator:</h5>
+                    <ol class="list-decimal text-zinc-800 text-xs pl-4 space-y-2 leading-relaxed font-medium">
+                        <li>Click <strong class="underline font-bold text-brand-accent">"Simulate Network Drop"</strong>
+                            above. This stops the active mock WebRTC synchronizer stream between Alice and Bob.</li>
+                        <li>Add tasks, or click the shift arrow <span
+                                class="bg-white px-1.5 py-0.5 rounded border border-brand-text text-[10px]">👉</span> to
+                            move columns inside <strong class="text-brand-primary font-bold">Alice's</strong> dashboard.
+                            Then perform actions separately inside <strong
+                                class="text-brand-accent font-bold">Bob's</strong> dashboard. Observe how local
+                            transactions write independently into their isolated database journals.</li>
+                        <li>Click <strong class="underline font-bold text-brand-primary">"Reconnect & Sync"</strong>.
+                            Watch the terminals exchange delta vectors, compute midpoints of fractional positions, and
+                            converge both client views to identical values deterministically!</li>
+                    </ol>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <section id="deep-dive" class="py-20 border-b-4 border-brand-text bg-brand-bg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center max-w-3xl mx-auto mb-16">
+                <span
+                    class="px-3 py-1.5 text-xs font-black uppercase tracking-widest bg-brand-primary text-white border-2 border-brand-text rounded-md shadow-brutal-sm inline-block mb-3">TECHNICAL
+                    BLUEPRINTS</span>
+                <h2 class="text-4xl sm:text-5xl font-anton text-brand-text tracking-wide">
+                    Core Architectural Pillars
+                </h2>
+                <p class="text-zinc-700 mt-4 text-sm sm:text-base font-medium leading-relaxed">
+                    Zero-server engineering dictates high reliance on secure browser environments to store, index, and
+                    reconcile distributed data.
+                </p>
+            </div>
+
+            <!-- Pillars Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+
+                <!-- Pillar 1 -->
+                <div
+                    class="bg-white border-2 border-brand-text p-6 rounded-2xl shadow-brutal flex flex-col justify-between h-full">
+                    <div>
+                        <div
+                            class="w-12 h-12 bg-brand-primary text-white rounded-xl border-2 border-brand-text flex items-center justify-center font-anton text-xl mb-4">
+                            01</div>
+                        <h4 class="text-xl font-anton text-brand-text mb-2">CRDT ALGEBRA</h4>
+                        <p class="text-xs text-zinc-600 leading-relaxed font-medium mb-4">
+                            All card mutations append logs of version vector changes mapped via state matrices. These
+                            converge deterministically on reconnect.
+                        </p>
+                    </div>
+                    <div
+                        class="border-t-2 border-brand-text pt-3 mt-auto font-mono text-[10px] text-brand-primary font-bold">
+                        DATA STRUCTURE: APPEND-ONLY GRAPHS
+                    </div>
+                </div>
+
+                <!-- Pillar 2 -->
+                <div
+                    class="bg-white border-2 border-brand-text p-6 rounded-2xl shadow-brutal flex flex-col justify-between h-full">
+                    <div>
+                        <div
+                            class="w-12 h-12 bg-brand-surface text-brand-text rounded-xl border-2 border-brand-text flex items-center justify-center font-anton text-xl mb-4">
+                            02</div>
+                        <h4 class="text-xl font-anton text-brand-text mb-2">FRACTIONAL INDEXES</h4>
+                        <p class="text-xs text-zinc-600 leading-relaxed font-medium mb-4">
+                            Assigning lexicographical coordinates (e.g. midway "AI") rather than normal array indexes
+                            avoids collapsing arrays offline.
+                        </p>
+                    </div>
+                    <div
+                        class="border-t-2 border-brand-text pt-3 mt-auto font-mono text-[10px] text-brand-text font-bold">
+                        LEXICAL SORT: STRING POSITION VALUES
+                    </div>
+                </div>
+
+                <!-- Pillar 3 -->
+                <div
+                    class="bg-white border-2 border-brand-text p-6 rounded-2xl shadow-brutal flex flex-col justify-between h-full">
+                    <div>
+                        <div
+                            class="w-12 h-12 bg-brand-accent text-white rounded-xl border-2 border-brand-text flex items-center justify-center font-anton text-xl mb-4">
+                            03</div>
+                        <h4 class="text-xl font-anton text-brand-text mb-2">SQLite WASM LAYER</h4>
+                        <p class="text-xs text-zinc-600 leading-relaxed font-medium mb-4">
+                            Reactive caching to local engines provides direct cold-start loading, bypasses latency
+                            hurdles, and operates 100% offline.
+                        </p>
+                    </div>
+                    <div
+                        class="border-t-2 border-brand-text pt-3 mt-auto font-mono text-[10px] text-brand-accent font-bold">
+                        PERSISTENCE: ATOMIC FLUSH ENGINES
+                    </div>
+                </div>
+
+                <!-- Pillar 4 -->
+                <div
+                    class="bg-white border-2 border-brand-text p-6 rounded-2xl shadow-brutal flex flex-col justify-between h-full">
+                    <div>
+                        <div
+                            class="w-12 h-12 bg-brand-bg text-brand-text rounded-xl border-2 border-brand-text flex items-center justify-center font-anton text-xl mb-4">
+                            04</div>
+                        <h4 class="text-xl font-anton text-brand-text mb-2">WEBRTC TRANSPORT</h4>
+                        <p class="text-xs text-zinc-600 leading-relaxed font-medium mb-4">
+                            Direct local browsers connect directly without centralized cloud proxy handlers, maximizing
+                            pipeline encryption.
+                        </p>
+                    </div>
+                    <div
+                        class="border-t-2 border-brand-text pt-3 mt-auto font-mono text-[10px] text-brand-primary font-bold">
+                        NETWORKING: E2EE DATA PIPELINES
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Overcoming Real-World P2P Challenges from README.md -->
+            <div class="mt-20 max-w-4xl mx-auto">
+                <h3 class="text-3xl font-anton text-brand-text text-center mb-8">P2P Technical Engineering Challenges
+                    Addressed</h3>
+
+                <div class="space-y-6">
+                    <div class="p-6 bg-white border-2 border-brand-text rounded-xl shadow-brutal text-left">
+                        <h4 class="text-lg font-bold text-brand-primary font-mono flex items-center">
+                            <span class="mr-2">01.</span> THE CONCURRENT MOVE PROBLEM
+                        </h4>
+                        <p class="text-xs text-zinc-600 mt-2 leading-relaxed font-medium">
+                            Moving cards concurrently within nested layouts causes array collisions. Synkan solves this
+                            by pairing string-based fractional indexes with a deterministic tie-breaker based on client
+                            cryptographic node signatures, allowing seamless and predictable offline shifts.
+                        </p>
+                    </div>
+
+                    <div class="p-6 bg-white border-2 border-brand-text rounded-xl shadow-brutal text-left">
+                        <h4 class="text-lg font-bold text-brand-accent font-mono flex items-center">
+                            <span class="mr-2">02.</span> STATE REHYDRATION & DELTA COMPRESSION
+                        </h4>
+                        <p class="text-xs text-zinc-600 mt-2 leading-relaxed font-medium">
+                            Transferring entire local documents over WebRTC consumes heavy bandwidth. On peer handshake,
+                            Synkan exchanges lightweight version vectors to calculate precisely which operations are
+                            missing, packing only compressed log increments.
+                        </p>
+                    </div>
+
+                    <div class="p-6 bg-white border-2 border-brand-text rounded-xl shadow-brutal text-left">
+                        <h4 class="text-lg font-bold text-brand-text font-mono flex items-center">
+                            <span class="mr-2">03.</span> TOMBSTONE MANAGEMENT & DATA RETENTION
+                        </h4>
+                        <p class="text-xs text-zinc-600 mt-2 leading-relaxed font-medium">
+                            Simultaneous deletion and edit conflicts introduce severe data loss risks. Synkan structures
+                            and enforces a robust, soft-deletion tombstone log that ensures deleted elements persist
+                            silently until all peers have agreed on state vectors.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <section id="tech-stack" class="py-20 border-b-4 border-brand-text bg-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center max-w-3xl mx-auto mb-16">
+                <span
+                    class="px-3 py-1.5 text-xs font-black uppercase tracking-widest bg-brand-surface text-brand-text border-2 border-brand-text rounded-md shadow-brutal-sm inline-block mb-3 font-mono">SPECIFIED
+                    DIRECTORY</span>
+                <h2 class="text-4xl sm:text-5xl font-anton text-brand-text tracking-wide">
+                    Tech Stack
+                </h2>
+                <p class="text-zinc-700 mt-4 text-sm sm:text-base font-medium leading-relaxed">
+                    Zero-server deployment is powered by these specialized client-side storage, math, and communication
+                    packages.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 max-w-5xl mx-auto text-left">
+
+                <div
+                    class="bg-brand-bg border-2 border-brand-text p-6 rounded-xl shadow-brutal-sm flex items-center space-x-4">
+                    <div class="p-3 bg-brand-primary text-white rounded-lg border-2 border-brand-text">
+                        <span class="font-anton text-xl leading-none">C</span>
+                    </div>
+                    <div>
+                        <h4 class="text-sm font-extrabold text-brand-text">Automerge / Yjs</h4>
+                        <p class="text-[10px] text-zinc-600 mt-0.5 font-medium">CRDT delta calculation math</p>
+                    </div>
+                </div>
+
+                <div
+                    class="bg-brand-bg border-2 border-brand-text p-6 rounded-xl shadow-brutal-sm flex items-center space-x-4">
+                    <div class="p-3 bg-brand-accent text-white rounded-lg border-2 border-brand-text">
+                        <span class="font-anton text-xl leading-none">S</span>
+                    </div>
+                    <div>
+                        <h4 class="text-sm font-extrabold text-brand-text">SQLite WASM</h4>
+                        <p class="text-[10px] text-zinc-600 mt-0.5 font-medium">Fast browser persistent cache</p>
+                    </div>
+                </div>
+
+                <div
+                    class="bg-brand-bg border-2 border-brand-text p-6 rounded-xl shadow-brutal-sm flex items-center space-x-4">
+                    <div class="p-3 bg-brand-surface text-brand-text rounded-lg border-2 border-brand-text">
+                        <span class="font-anton text-xl leading-none">W</span>
+                    </div>
+                    <div>
+                        <h4 class="text-sm font-extrabold text-brand-text">WebRTC Channels</h4>
+                        <p class="text-[10px] text-zinc-600 mt-0.5 font-medium">Direct ad-hoc peer data tunnels</p>
+                    </div>
+                </div>
+
+                <div
+                    class="bg-brand-bg border-2 border-brand-text p-6 rounded-xl shadow-brutal-sm flex items-center space-x-4">
+                    <div class="p-3 bg-[#FFFFFF] text-brand-primary rounded-lg border-2 border-brand-text">
+                        <span class="font-anton text-xl leading-none">R</span>
+                    </div>
+                    <div>
+                        <h4 class="text-sm font-extrabold text-brand-text">React / TS / Vite</h4>
+                        <p class="text-[10px] text-zinc-600 mt-0.5 font-medium">Strictly typed reactive components</p>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <footer class="bg-brand-text text-white py-16 font-mono text-xs border-t-4 border-brand-text">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex flex-col md:flex-row items-center justify-between gap-8 pb-10 border-b border-zinc-800">
+                <div class="text-left">
+                    <span class="font-anton text-2xl tracking-wider text-brand-surface block mb-2">SYNKAN P2P
+                        CORE</span>
+                </div>
+            </div>
+            <div
+                class="mt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-zinc-500 font-sans font-medium">
+                <span>&copy; 2026 Synkan Engine Project. Decentralized local autonomy.</span>
+                <div class="flex space-x-6">
+                    <a href="#why" class="hover:text-brand-surface transition-colors">The Paradigm</a>
+                    <a href="#sandbox" class="hover:text-brand-surface transition-colors">P2P Simulator</a>
+                    <a href="#deep-dive" class="hover:text-brand-surface transition-colors">Architecture Specs</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Local isolated states simulating Alice and Bob's offline databases
+        const peerState = {
+            isConnected: true,
+            cards: [
+                { id: 'card-1', title: 'Implement WASM SQLite persistence layers', column: 'backlog', orderKey: 'A', lastEditor: 'Initial' },
+                { id: 'card-2', title: 'Optimize WebRTC data-channel streams', column: 'backlog', orderKey: 'B', lastEditor: 'Initial' },
+                { id: 'card-3', title: 'Verify fractional index midpoints math', column: 'progress', orderKey: 'A', lastEditor: 'Initial' }
+            ]
+        };
+
+        // Deep copy helper for disconnected operations
+        function cloneCards(cardsArray) {
+            return JSON.parse(JSON.stringify(cardsArray));
+        }
+
+        let stateA = cloneCards(peerState.cards);
+        let stateB = cloneCards(peerState.cards);
+
+        // Map DOM items
+        const domElements = {
+            peerA: {
+                backlog: document.getElementById('peerA-col-backlog'),
+                progress: document.getElementById('peerA-col-progress'),
+                logs: document.getElementById('peerA-logs')
+            },
+            peerB: {
+                backlog: document.getElementById('peerB-col-backlog'),
+                progress: document.getElementById('peerB-col-progress'),
+                logs: document.getElementById('peerB-logs')
+            },
+            linkDot: document.getElementById('link-indicator-dot'),
+            linkText: document.getElementById('link-indicator-text'),
+            toggleBtnText: document.getElementById('btn-toggle-connection-text'),
+            forceSyncBtn: document.getElementById('btn-force-sync')
+        };
+
+        // Custom Simulated Terminal Outputs
+        function addLog(peerId, message, type = 'info') {
+            const container = domElements[`peer${peerId}`].logs;
+            if (!container) return;
+
+            const logLine = document.createElement('div');
+
+            let colorClass = 'text-white';
+            if (type === 'error') colorClass = 'text-[#E52B50] font-bold';    // Accent rose-red warnings
+            if (type === 'success') colorClass = 'text-[#FFD700] font-bold';  // Yellow surface successes
+            if (type === 'accent') colorClass = 'text-[#1E3A8A] bg-white px-1.5 py-0.5 rounded font-bold';    // Primary blue highlight
+
+            const timestamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            logLine.innerHTML = `<span class="text-zinc-500">[${timestamp}]</span> <span class="${colorClass}">${message}</span>`;
+
+            container.appendChild(logLine);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        // Initialize local card insertion triggers
+        function addNewCard(peerLetter) {
+            const peerId = peerLetter === 'A' ? 'A' : 'B';
+            const owner = peerLetter === 'A' ? 'Alice' : 'Bob';
+            const randomId = 'card-' + Math.floor(Math.random() * 100000);
+
+            const titles = [
+                'Analyze lexicographical position vectors',
+                'Write tombstone deletion retention codes',
+                'Verify WASM SQLite binary index logs',
+                'Compress WebRTC transport frame structures',
+                'Resolve concurrent ordering collision anomalies'
+            ];
+            const title = titles[Math.floor(Math.random() * titles.length)];
+
+            const targetState = peerLetter === 'A' ? stateA : stateB;
+            const backlogCards = targetState.filter(c => c.column === 'backlog').sort((a, b) => a.orderKey.localeCompare(b.orderKey));
+
+            // Calculate Lexical fractional coordinate midpoint
+            let lastKey = 'A';
+            if (backlogCards.length > 0) {
+                const maxKey = backlogCards[backlogCards.length - 1].orderKey;
+                lastKey = String.fromCharCode(maxKey.charCodeAt(0) + 1); // Mock midpoint: 'A' -> 'B' -> 'C'
+            }
+
+            const newCard = {
+                id: randomId,
+                title: title,
+                column: 'backlog',
+                orderKey: lastKey,
+                lastEditor: owner
+            };
+
+            targetState.push(newCard);
+
+            addLog(peerLetter, `Local transaction registered: "${title.slice(0, 22)}..."`, 'accent');
+            addLog(peerLetter, `SQLite WASM disk entry committed.`, 'success');
+
+            if (peerState.isConnected) {
+                syncDirectly();
+            } else {
+                addLog(peerLetter, `OFFLINE: Peer offline. Handshake buffered in local logs.`, 'error');
+            }
+
+            renderBoards();
+        }
+
+        // Simulate local card drag & column shifting
+        function moveCardSimulated(cardId, peerLetter, targetColumn) {
+            const targetState = peerLetter === 'A' ? stateA : stateB;
+            const card = targetState.find(c => c.id === cardId);
+
+            if (!card) return;
+
+            card.column = targetColumn;
+            card.lastEditor = peerLetter === 'A' ? 'Alice' : 'Bob';
+
+            // Calculate fractional lexicographical order midpoint
+            const colCards = targetState.filter(c => c.column === targetColumn).sort((a, b) => a.orderKey.localeCompare(b.orderKey));
+            let newOrderKey = 'A';
+            if (colCards.length > 0) {
+                const lastCard = colCards[colCards.length - 1];
+                newOrderKey = String.fromCharCode(lastCard.orderKey.charCodeAt(0) + 1);
+            }
+            card.orderKey = newOrderKey;
+
+            addLog(peerLetter, `Card column updated to "${targetColumn}". Lexical sort key is "${newOrderKey}"`, 'accent');
+
+            if (peerState.isConnected) {
+                syncDirectly();
+            } else {
+                addLog(peerLetter, `OFFLINE: Handshake failed. Modification recorded to state delta.`, 'error');
+            }
+
+            renderBoards();
+        }
+
+        // Toggle WebRTC state triggers
+        function togglePeerConnection() {
+            peerState.isConnected = !peerState.isConnected;
+
+            if (peerState.isConnected) {
+                domElements.linkDot.className = "w-4 h-4 rounded-full bg-brand-primary border-2 border-brand-text animate-pulse";
+                domElements.linkText.innerHTML = "CONNECTED (MESH STABLE)";
+                domElements.linkText.className = "text-lg font-anton tracking-wide text-brand-primary";
+                domElements.toggleBtnText.innerText = "Simulate Network Drop";
+                domElements.forceSyncBtn.style.display = 'none';
+
+                addLog('A', 'Established secure WebRTC connection with Bob', 'success');
+                addLog('B', 'Established secure WebRTC connection with Alice', 'success');
+
+                syncDirectly();
+            } else {
+                domElements.linkDot.className = "w-4 h-4 rounded-full bg-brand-accent border-2 border-brand-text";
+                domElements.linkText.innerHTML = "DISCONNECTED (OFFLINE OPERATIONS)";
+                domElements.linkText.className = "text-lg font-anton tracking-wide text-brand-accent animate-pulse";
+                domElements.toggleBtnText.innerText = "Resume Connection Mode";
+                domElements.forceSyncBtn.style.display = 'inline-flex';
+
+                addLog('A', 'WebRTC signaling disconnected. Switched to offline isolation.', 'error');
+                addLog('B', 'WebRTC signaling disconnected. Switched to offline isolation.', 'error');
+            }
+        }
+
+        // Calculate missing state vector handshakes & merge deterministically
+        function syncDirectly() {
+            addLog('A', 'Broadcasting state vectors to mesh networks...', 'info');
+            addLog('B', 'Synchronizing logs via vector delta matrix...', 'info');
+
+            const allCardIds = Array.from(new Set([...stateA.map(c => c.id), ...stateB.map(c => c.id)]));
+            const mergedState = [];
+
+            allCardIds.forEach(id => {
+                const cardA = stateA.find(c => c.id === id);
+                const cardB = stateB.find(c => c.id === id);
+
+                if (cardA && !cardB) {
+                    mergedState.push(cardA);
+                    addLog('B', `Integrated card: "${cardA.title.slice(0, 16)}..." from Alice`, 'success');
+                } else if (!cardA && cardB) {
+                    mergedState.push(cardB);
+                    addLog('A', `Integrated card: "${cardB.title.slice(0, 16)}..." from Bob`, 'success');
+                } else {
+                    // Item modified on both browsers concurrently -- Tie-Breaker
+                    if (cardA.column === cardB.column && cardA.orderKey === cardB.orderKey) {
+                        mergedState.push(cardA);
+                    } else {
+                        addLog('A', `CRDT COLLISION RESOLVED on: "${cardA.title.slice(0, 12)}..."`, 'error');
+                        addLog('B', `Reconciling concurrent move midpoint offsets...`, 'error');
+
+                        // Let Alice's updates win (simulate standard cryptographic client tie-breaking algorithms)
+                        const winningCard = cardA.lastEditor === 'Alice' ? cardA : cardB;
+                        mergedState.push(winningCard);
+
+                        addLog('A', `Tie resolved. Winner node signature: ${winningCard.lastEditor}`, 'success');
+                        addLog('B', `Tie resolved. Winner node signature: ${winningCard.lastEditor}`, 'success');
+                    }
+                }
+            });
+
+            stateA = cloneCards(mergedState);
+            stateB = cloneCards(mergedState);
+
+            addLog('A', 'Mesh databases are unified and synchronized.', 'success');
+            addLog('B', 'Mesh databases are unified and synchronized.', 'success');
+
+            renderBoards();
+        }
+
+        function forcePeerSync() {
+            togglePeerConnection();
+        }
+
+        // Render current Kanban data views
+        function renderBoards() {
+            renderColumn(stateA, 'backlog', 'A', domElements.peerA.backlog);
+            renderColumn(stateA, 'progress', 'A', domElements.peerA.progress);
+
+            renderColumn(stateB, 'backlog', 'B', domElements.peerB.backlog);
+            renderColumn(stateB, 'progress', 'B', domElements.peerB.progress);
+        }
+
+        function renderColumn(cardsSource, columnName, peerLetter, containerDom) {
+            containerDom.innerHTML = '';
+
+            const filtered = cardsSource
+                .filter(c => c.column === columnName)
+                .sort((a, b) => a.orderKey.localeCompare(b.orderKey));
+
+            if (filtered.length === 0) {
+                containerDom.innerHTML = `<div class="text-[10px] text-zinc-400 border border-dashed border-zinc-300 rounded p-4 text-center">Empty Column</div>`;
+                return;
+            }
+
+            filtered.forEach(card => {
+                const cardEl = document.createElement('div');
+                cardEl.className = "bg-white p-3.5 rounded-lg border-2 border-brand-text flex flex-col justify-between hover:translate-y-[-1px] transition-transform shadow-brutal-sm relative text-left";
+
+                let badgeColor = 'bg-brand-primary text-white border-brand-text';
+                if (card.lastEditor === 'Bob') badgeColor = 'bg-brand-accent text-white border-brand-text';
+                if (card.lastEditor === 'Initial') badgeColor = 'bg-white text-zinc-500 border-zinc-300';
+
+                const nextCol = columnName === 'backlog' ? 'progress' : 'backlog';
+                const buttonArrow = columnName === 'backlog' ? '👉' : '👈';
+                const buttonLabel = columnName === 'backlog' ? 'Shift to Progress' : 'Shift to Backlog';
+
+                cardEl.innerHTML = `
+                    <div class="text-xs font-bold text-brand-text leading-snug">${card.title}</div>
+                    <div class="flex items-center justify-between mt-3 pt-2 border-t border-zinc-200 text-[9px]">
+                        <span class="px-2 py-0.5 rounded border font-bold ${badgeColor}">${card.lastEditor}</span>
+                        <div class="flex items-center space-x-2">
+                            <span class="font-mono text-zinc-500 font-bold" title="Fractional Sorting Coordinate">idx: ${card.orderKey}</span>
+                            <button onclick="moveCardSimulated('${card.id}', '${peerLetter}', '${nextCol}')" class="px-2 py-0.5 rounded bg-brand-surface hover:bg-brand-accent hover:text-white border border-brand-text font-black transition-all" title="${buttonLabel}">
+                                ${buttonArrow}
+                            </button>
+                        </div>
+                    </div>
+                `;
+                containerDom.appendChild(cardEl);
+            });
+        }
+
+        // Launch simulation logs
+        window.onload = function () {
+            addLog('A', 'SQLite database transaction engines active.', 'success');
+            addLog('A', 'Bound signalers. Searching for local mesh peer...', 'info');
+            addLog('A', 'Direct peer WebRTC channel bound to peer node @peer/bob-c812.', 'accent');
+
+            addLog('B', 'SQLite database transaction engines active.', 'success');
+            addLog('B', 'Bound signalers. Searching for local mesh peer...', 'info');
+            addLog('B', 'Direct peer WebRTC channel bound to peer node @peer/alice-7a3b.', 'accent');
+
+            renderBoards();
+        };
+    </script>
+</body>
+
+</html>
