@@ -7,7 +7,7 @@
     "start": "node node_modules/y-webrtc/bin/server.js"
   },
   "dependencies": {
-    "ws": "^8.18.0",
-    "y-webrtc": "^13.0.2"
+    "ws": "^8.21.0",
+    "y-webrtc": "^10.3.0"
   }
 }
