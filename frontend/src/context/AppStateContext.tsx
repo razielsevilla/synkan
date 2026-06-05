@@ -123,10 +123,8 @@ export const AppStateProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     if (provider) {
       provider.destroy();
     }
-    const newProvider = new WebrtcProvider(boardId, ydoc, { 
-      signaling: [import.meta.env.VITE_SIGNALING_URL || 'ws://localhost:4444'],
-      password: null,
-      awareness: new awarenessProtocol.Awareness(ydoc)
+    const newProvider = new WebrtcProvider(boardId, ydoc, {
+      signaling: [import.meta.env.VITE_SIGNALING_URL || 'ws://localhost:4444']
     });
 
     // Update awareness (presence)

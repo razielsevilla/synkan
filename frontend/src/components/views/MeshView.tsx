@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useAppState } from '../../context/AppStateContext';
 
 export const MeshView: React.FC = () => {
-  const { appState, localPeerId, addLog, connectToRoom, activeRoom } = useAppState();
+  const { appState, addLog, activeRoom } = useAppState();
   const copyToClipboard = () => {
     if (activeRoom) {
       navigator.clipboard.writeText(activeRoom);
