@@ -27,13 +27,13 @@ export default function Footer() {
             </p>
           </div>
           <div className="flex flex-col gap-4 w-full md:w-auto">
-            <a href="https://github.com" target="_blank" rel="noreferrer"
+            <a href="https://github.com/razielsevilla/synkan" target="_blank" rel="noreferrer"
                className="inline-flex items-center justify-center px-8 py-4 text-sm font-black tracking-widest text-brand-text uppercase bg-brand-surface border-2 border-brand-surface hover:bg-white hover:border-white transition-colors">
               Star on GitHub
             </a>
-            <a href="#sandbox"
+            <a href="https://synkan-app.vercel.app/" target="_blank" rel="noreferrer"
                className="inline-flex items-center justify-center px-8 py-4 text-sm font-black tracking-widest text-white uppercase bg-transparent border-2 border-zinc-700 hover:border-brand-primary hover:text-brand-primary transition-colors">
-              Revisit Sandbox
+              Launch Live App
             </a>
           </div>
         </div>
@@ -68,7 +68,7 @@ export default function Footer() {
             <h4 className="text-white font-bold mb-6 tracking-widest uppercase">Community</h4>
             <ul className="space-y-4 text-zinc-500">
               <li><a href="#" className="hover:text-brand-surface transition-colors flex items-center gap-2"><span className="text-brand-accent">→</span> Discord Server</a></li>
-              <li><a href="#" className="hover:text-brand-surface transition-colors flex items-center gap-2"><span className="text-brand-accent">→</span> GitHub Discussions</a></li>
+              <li><a href="https://github.com/razielsevilla/synkan" target="_blank" rel="noreferrer" className="hover:text-brand-surface transition-colors flex items-center gap-2"><span className="text-brand-accent">→</span> GitHub Repository</a></li>
               <li><a href="#" className="hover:text-brand-surface transition-colors flex items-center gap-2"><span className="text-brand-accent">→</span> Twitter / X</a></li>
             </ul>
           </div>

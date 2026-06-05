@@ -22,13 +22,13 @@ export default function HeroSection() {
 
         {/* Striking Neo-Brutalist Call-to-Actions */}
         <div className="flex flex-col sm:flex-row items-center justify-center space-y-4 sm:space-y-0 sm:space-x-6 mb-16">
-          <a href="#sandbox"
+          <a href="https://synkan-app.vercel.app/" target="_blank" rel="noreferrer"
             className="w-full sm:w-auto px-8 py-5 text-base font-black uppercase tracking-wider text-brand-text bg-brand-surface border-2 border-brand-text rounded-xl shadow-brutal hover:translate-y-[-2px] hover:shadow-brutal-lg active:translate-y-[2px] active:shadow-none transition-all">
-            Interact with Peer Simulation
+            Launch Live App
           </a>
-          <a href="#why"
+          <a href="https://github.com/razielsevilla/synkan" target="_blank" rel="noreferrer"
             className="w-full sm:w-auto px-8 py-5 text-base font-bold uppercase tracking-wider text-brand-text bg-white border-2 border-brand-text rounded-xl shadow-brutal hover:translate-y-[-2px] hover:shadow-brutal-lg hover:bg-brand-bg active:translate-y-[2px] active:shadow-none transition-all">
-            Explore Architecture
+            View on GitHub
           </a>
         </div>
 
