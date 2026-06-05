@@ -58,18 +58,9 @@ export default function Footer() {
           <div>
             <h4 className="text-white font-bold mb-6 tracking-widest uppercase">Ecosystem</h4>
             <ul className="space-y-4 text-zinc-500">
-              <li><a href="#" className="hover:text-brand-surface transition-colors flex items-center gap-2"><span className="text-brand-primary">→</span> Documentation</a></li>
-              <li><a href="#" className="hover:text-brand-surface transition-colors flex items-center gap-2"><span className="text-brand-primary">→</span> Automerge CRDT</a></li>
-              <li><a href="#" className="hover:text-brand-surface transition-colors flex items-center gap-2"><span className="text-brand-primary">→</span> WebRTC Spec</a></li>
-            </ul>
-          </div>
-          
-          <div>
-            <h4 className="text-white font-bold mb-6 tracking-widest uppercase">Community</h4>
-            <ul className="space-y-4 text-zinc-500">
-              <li><a href="#" className="hover:text-brand-surface transition-colors flex items-center gap-2"><span className="text-brand-accent">→</span> Discord Server</a></li>
-              <li><a href="https://github.com/razielsevilla/synkan" target="_blank" rel="noreferrer" className="hover:text-brand-surface transition-colors flex items-center gap-2"><span className="text-brand-accent">→</span> GitHub Repository</a></li>
-              <li><a href="#" className="hover:text-brand-surface transition-colors flex items-center gap-2"><span className="text-brand-accent">→</span> Twitter / X</a></li>
+              <li><a href="https://github.com/razielsevilla/synkan#readme" target="_blank" rel="noreferrer" className="hover:text-brand-surface transition-colors flex items-center gap-2"><span className="text-brand-primary">→</span> Documentation</a></li>
+              <li><a href="https://yjs.dev/" target="_blank" rel="noreferrer" className="hover:text-brand-surface transition-colors flex items-center gap-2"><span className="text-brand-primary">→</span> Yjs CRDT Engine</a></li>
+              <li><a href="https://webrtc.org/" target="_blank" rel="noreferrer" className="hover:text-brand-surface transition-colors flex items-center gap-2"><span className="text-brand-primary">→</span> WebRTC API</a></li>
             </ul>
           </div>
         </div>
