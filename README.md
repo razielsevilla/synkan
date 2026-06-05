@@ -1,5 +1,7 @@
 # Synkan 🚀
 
+**[View Landing Page](https://synkan-landing-page.vercel.app/)** | **[Launch Live App](https://synkan-app.vercel.app/)**
+
 A high-performance, local-first, peer-to-peer (P2P) collaborative Kanban engine built entirely without a centralized database or server infrastructure. 
 
 Traditional collaboration tools rely heavily on cloud servers to arbitrate state and resolve user conflicts. **Synkan** flips this architecture by making the user's local device the primary source of truth. By utilizing Conflict-Free Replicated Data Types (CRDTs) and WebRTC data channels, team members can manage tasks, restructure columns, and update project scopes fully offline, synchronizing their states seamlessly the moment a peer connection is established.
