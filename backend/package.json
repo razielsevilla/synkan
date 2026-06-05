@@ -1,0 +1,13 @@
+{
+  "name": "synkan-backend",
+  "version": "1.0.0",
+  "description": "Synkan WebRTC Signaling Server",
+  "main": "index.js",
+  "scripts": {
+    "start": "node node_modules/y-webrtc/bin/server.js"
+  },
+  "dependencies": {
+    "ws": "^8.18.0",
+    "y-webrtc": "^13.0.2"
+  }
+}
