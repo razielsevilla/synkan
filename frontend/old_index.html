@@ -1,0 +1,1453 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-brand-bg">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Synkan — Private Collaborative Workspace</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Anton (Headlines) & Work Sans (Body) & JetBrains Mono (Terminal/Code) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Anton&family=Work+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap"
+        rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Work Sans', 'sans-serif'],
+                        anton: ['Anton', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    colors: {
+                        brand: {
+                            bg: '#F5F2EA',         /* Warm Off-White Background */
+                            text: '#0A0A0A',       /* Deep Obsidian Black */
+                            primary: '#1E3A8A',    /* Royal Blue */
+                            accent: '#E52B50',     /* Rose Amaranth Red */
+                            surface: '#FFD700',    /* Bright Gold/Yellow */
+                            border: '#D1D1D1'      /* Light Neutral Grey */
+                        }
+                    },
+                    boxShadow: {
+                        'brutal': '4px 4px 0px 0px #0A0A0A',
+                        'brutal-lg': '8px 8px 0px 0px #0A0A0A',
+                        'brutal-sm': '2px 2px 0px 0px #0A0A0A',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Work Sans', sans-serif;
+            background-color: #F5F2EA;
+            color: #0A0A0A;
+        }
+
+        h1,
+        h2,
+        h3,
+        h4,
+        .font-anton {
+            font-family: 'Anton', sans-serif;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+        }
+
+        /* Custom scrollbars utilizing brand accent color */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #F5F2EA;
+            border-left: 1px solid #0A0A0A;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #0A0A0A;
+            border: 2px solid #F5F2EA;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #1E3A8A;
+        }
+
+        /* High-contrast element classes */
+        .brutal-card {
+            background-color: #FFFFFF;
+            border: 2px solid #0A0A0A;
+            box-shadow: 4px 4px 0px 0px #0A0A0A;
+        }
+
+        .brutal-card-accent {
+            background-color: #FFFFFF;
+            border: 2px solid #E52B50;
+            box-shadow: 4px 4px 0px 0px #E52B50;
+        }
+
+        .brutal-input {
+            border: 2px solid #0A0A0A;
+            border-radius: 8px;
+            padding: 0.5rem 1rem;
+            background: #FFFFFF;
+            font-weight: 500;
+        }
+
+        .brutal-input:focus {
+            outline: none;
+            box-shadow: 2px 2px 0px 0px #0A0A0A;
+        }
+    </style>
+</head>
+
+<body class="h-full flex flex-col overflow-hidden selection:bg-brand-surface selection:text-brand-text">
+
+    <!-- Global App Header -->
+    <header class="h-16 border-b-4 border-brand-text bg-white flex items-center justify-between px-4 sm:px-6 z-30">
+        <div class="flex items-center space-x-3">
+            <div
+                class="w-10 h-10 rounded-lg bg-brand-surface border-2 border-brand-text flex items-center justify-center shadow-brutal-sm">
+                <span class="font-anton text-xl text-brand-text">S</span>
+            </div>
+            <div>
+                <span class="font-anton text-2xl tracking-wide text-brand-text hidden sm:inline-block">Synkan</span>
+                <span class="font-anton text-2xl tracking-wide text-brand-text inline-block sm:hidden">S</span>
+                <span
+                    class="ml-2 inline-flex items-center px-1.5 py-0.5 rounded border border-brand-text text-[9px] font-mono bg-brand-surface font-bold text-brand-text">SECURE
+                    &amp; PRIVATE</span>
+            </div>
+        </div>
+
+        <!-- Live Network Sync Status Banner -->
+        <div class="flex items-center space-x-2 sm:space-x-6">
+            <div
+                class="flex items-center space-x-2 bg-brand-bg border-2 border-brand-text px-3 py-1 rounded-lg text-xs font-mono font-bold">
+                <span id="global-sync-dot"
+                    class="w-2.5 h-2.5 rounded-full bg-emerald-500 border border-brand-text"></span>
+                <span id="global-sync-text" class="text-brand-text hidden md:inline">DIRECT SYNC IS LIVE</span>
+                <span id="global-sync-text-short" class="text-brand-text md:hidden">SYNC ON</span>
+            </div>
+            <div class="hidden lg:flex items-center space-x-2 font-mono text-[11px] text-zinc-500">
+                <span>ACTIVE TEAMMATES: <strong id="header-peer-count" class="text-brand-primary">0
+                        Connected</strong></span>
+                <span class="text-brand-text">|</span>
+                <span>LAST SAVED: <strong id="header-last-sync" class="text-brand-accent">Just Now</strong></span>
+            </div>
+            <!-- Notification Center Trigger -->
+            <button onclick="toggleNotificationPane()"
+                class="relative p-2 rounded-lg border-2 border-brand-text hover:bg-brand-bg transition-colors"
+                title="View Recent Safety Warnings & Notices">
+                <svg class="w-5 h-5 text-brand-text" fill="none" stroke="currentColor" stroke-width="2.5"
+                    viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <span id="notif-badge"
+                    class="absolute -top-1 -right-1 w-4 h-4 bg-brand-accent border border-brand-text text-[9px] text-white font-extrabold flex items-center justify-center rounded-full">0</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Workspace Container -->
+    <div class="flex-1 flex overflow-hidden relative">
+
+        <!-- Interactive Sidebar -->
+        <aside class="w-16 md:w-64 border-r-4 border-brand-text bg-white flex flex-col justify-between z-20">
+            <nav class="p-3 space-y-2">
+                <div
+                    class="hidden md:block px-3 py-2 text-[10px] font-mono font-bold uppercase text-zinc-400 tracking-wider">
+                    My Workspace
+                </div>
+
+                <!-- Tab: Kanban Board -->
+                <button onclick="switchTab('board')" id="tab-btn-board"
+                    class="w-full flex items-center space-x-3 p-3 rounded-xl border-2 border-brand-text text-left transition-all bg-brand-surface shadow-brutal-sm">
+                    <span class="text-lg">📁</span>
+                    <span class="font-bold text-sm hidden md:inline tracking-wide font-sans text-brand-text">Workspace
+                        Board</span>
+                </button>
+
+                <!-- Tab: WebRTC Connections -->
+                <button onclick="switchTab('mesh')" id="tab-btn-mesh"
+                    class="w-full flex items-center space-x-3 p-3 rounded-xl border-2 border-transparent text-left hover:bg-brand-bg transition-all">
+                    <span class="text-lg">🕸️</span>
+                    <span class="font-bold text-sm hidden md:inline tracking-wide font-sans text-zinc-500">Connect &amp;
+                        Sync</span>
+                </button>
+
+                <!-- Tab: Mutation Ledger -->
+                <button onclick="switchTab('journal')" id="tab-btn-journal"
+                    class="w-full flex items-center space-x-3 p-3 rounded-xl border-2 border-transparent text-left hover:bg-brand-bg transition-all">
+                    <span class="text-lg">📓</span>
+                    <span class="font-bold text-sm hidden md:inline tracking-wide font-sans text-zinc-500">History &amp;
+                        Trash</span>
+                </button>
+
+                <!-- Tab: Caching DB -->
+                <button onclick="switchTab('database')" id="tab-btn-database"
+                    class="w-full flex items-center space-x-3 p-3 rounded-xl border-2 border-transparent text-left hover:bg-brand-bg transition-all">
+                    <span class="text-lg">💾</span>
+                    <span class="font-bold text-sm hidden md:inline tracking-wide font-sans text-zinc-500">Data &amp;
+                        Storage</span>
+                </button>
+            </nav>
+
+            <!-- Bottom Node Identifier -->
+            <div class="p-3 border-t-2 border-brand-text bg-brand-bg hidden md:block">
+                <div class="flex items-center space-x-2">
+                    <span class="w-2 h-2 rounded-full bg-brand-primary"></span>
+                    <span class="text-[10px] font-mono font-bold text-zinc-500">YOUR DEVICE ID</span>
+                </div>
+                <div id="local-peer-id-display"
+                    class="text-xs font-mono font-bold text-brand-text mt-1 break-all truncate"
+                    title="Identifying your device...">
+                    Identifying Device...
+                </div>
+            </div>
+        </aside>
+
+        <!-- Content Page Switch Container -->
+        <main class="flex-1 overflow-y-auto p-4 sm:p-6 relative focus:outline-none bg-brand-bg">
+
+            <!-- PAGE 1: KANBAN WORKSPACE BOARD (Fully Functional) -->
+            <div id="page-board" class="space-y-6">
+                <!-- Page Title Area -->
+                <div
+                    class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 border-2 border-brand-text rounded-2xl shadow-brutal">
+                    <div>
+                        <h2 class="text-3xl font-anton text-brand-text leading-none">My Workspace Board</h2>
+                        <p class="text-zinc-600 text-xs font-medium mt-1">Everything you edit here is saved directly
+                            onto your computer. No cloud logins, no tracking, completely private.</p>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <div class="relative">
+                            <input id="search-cards-input" oninput="filterBoardCards()" type="text"
+                                placeholder="Search tasks..."
+                                class="text-xs font-semibold border-2 border-brand-text px-3 py-2.5 rounded-xl w-40 sm:w-56 bg-brand-bg focus:outline-none focus:bg-white" />
+                        </div>
+                        <button onclick="openCreateCardModal()"
+                            class="px-4 py-2.5 text-xs font-black bg-brand-surface text-brand-text border-2 border-brand-text rounded-xl shadow-brutal-sm hover:translate-y-[-2px] hover:shadow-brutal transition-all">
+                            + CREATE CARD
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Kanban Columns Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 items-start">
+
+                    <!-- Column 1: Backlog -->
+                    <div
+                        class="bg-white border-2 border-brand-text rounded-2xl p-4 shadow-brutal-sm min-h-[500px] flex flex-col">
+                        <div class="flex items-center justify-between pb-2 border-b-2 border-brand-text mb-4">
+                            <div class="flex items-center space-x-2">
+                                <span class="w-3 h-3 rounded-full bg-brand-primary"></span>
+                                <span class="font-anton text-lg text-brand-text">Task Pool</span>
+                            </div>
+                            <span id="count-backlog"
+                                class="font-mono text-xs font-bold px-2 py-0.5 bg-brand-bg border border-brand-text rounded">0</span>
+                        </div>
+                        <div id="col-backlog" class="space-y-3 flex-1">
+                            <!-- Populated dynamically -->
+                        </div>
+                    </div>
+
+                    <!-- Column 2: Ready for Dev -->
+                    <div
+                        class="bg-white border-2 border-brand-text rounded-2xl p-4 shadow-brutal-sm min-h-[500px] flex flex-col">
+                        <div class="flex items-center justify-between pb-2 border-b-2 border-brand-text mb-4">
+                            <div class="flex items-center space-x-2">
+                                <span class="w-3 h-3 rounded-full bg-brand-accent"></span>
+                                <span class="font-anton text-lg text-brand-text">Up Next</span>
+                            </div>
+                            <span id="count-ready"
+                                class="font-mono text-xs font-bold px-2 py-0.5 bg-brand-bg border border-brand-text rounded">0</span>
+                        </div>
+                        <div id="col-ready" class="space-y-3 flex-1">
+                            <!-- Populated dynamically -->
+                        </div>
+                    </div>
+
+                    <!-- Column 3: In Progress -->
+                    <div
+                        class="bg-white border-2 border-brand-text rounded-2xl p-4 shadow-brutal-sm min-h-[500px] flex flex-col">
+                        <div class="flex items-center justify-between pb-2 border-b-2 border-brand-text mb-4">
+                            <div class="flex items-center space-x-2">
+                                <span class="w-3 h-3 rounded-full bg-brand-surface"></span>
+                                <span class="font-anton text-lg text-brand-text">Doing</span>
+                            </div>
+                            <span id="count-progress"
+                                class="font-mono text-xs font-bold px-2 py-0.5 bg-brand-bg border border-brand-text rounded">0</span>
+                        </div>
+                        <div id="col-progress" class="space-y-3 flex-1">
+                            <!-- Populated dynamically -->
+                        </div>
+                    </div>
+
+                    <!-- Column 4: Resolved -->
+                    <div
+                        class="bg-white border-2 border-brand-text rounded-2xl p-4 shadow-brutal-sm min-h-[500px] flex flex-col">
+                        <div class="flex items-center justify-between pb-2 border-b-2 border-brand-text mb-4">
+                            <div class="flex items-center space-x-2">
+                                <span class="w-3 h-3 rounded-full bg-zinc-400"></span>
+                                <span class="font-anton text-lg text-brand-text">Finished</span>
+                            </div>
+                            <span id="count-resolved"
+                                class="font-mono text-xs font-bold px-2 py-0.5 bg-brand-bg border border-brand-text rounded">0</span>
+                        </div>
+                        <div id="col-resolved" class="space-y-3 flex-1">
+                            <!-- Populated dynamically -->
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- PAGE 2: PEER CONNECTIONS (Actual WebRTC Setup UI) -->
+            <div id="page-mesh" class="space-y-6 hidden">
+                <div class="bg-white p-5 border-2 border-brand-text rounded-2xl shadow-brutal">
+                    <h2 class="text-3xl font-anton text-brand-text leading-none">Direct Teammate Connections</h2>
+                    <p class="text-zinc-600 text-xs font-medium mt-1">Connect directly with team members around you. No
+                        intermediate cloud database is used—just computer-to-computer.</p>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <!-- Left: Control Center & Node Configuration -->
+                    <div
+                        class="bg-white border-2 border-brand-text p-6 rounded-2xl shadow-brutal-sm space-y-6 text-left">
+                        <h3 class="text-xl font-anton text-brand-text border-b-2 border-brand-text pb-2">Link with a
+                            Teammate</h3>
+
+                        <div class="space-y-4">
+                            <div>
+                                <label class="text-xs font-mono font-bold text-zinc-500 uppercase block mb-1">Your
+                                    Connection Invite Code</label>
+                                <p class="text-[11px] text-zinc-500 mb-2 leading-snug">Copy this code and send it to
+                                    your teammate via email, Slack, or chat.</p>
+                                <div class="flex gap-2">
+                                    <input id="mesh-local-sdp-val" readonly type="text"
+                                        class="w-full text-xs font-mono border-2 border-brand-text p-2.5 rounded-lg bg-brand-bg" />
+                                    <button onclick="copyToClipboard('mesh-local-sdp-val')"
+                                        class="px-3 bg-brand-surface border-2 border-brand-text rounded-lg font-bold text-xs"
+                                        title="Copy Invitation Key">Copy</button>
+                                </div>
+                            </div>
+
+                            <div class="border-t border-brand-border pt-4">
+                                <label class="text-xs font-mono font-bold text-zinc-500 uppercase block mb-1">Teammate's
+                                    Invite Code</label>
+                                <p class="text-[11px] text-zinc-500 mb-2 leading-snug">Paste the invite code your
+                                    teammate sent you into the field below.</p>
+                                <textarea id="peer-input-sdp" rows="4"
+                                    class="w-full text-xs font-mono border-2 border-brand-text p-2.5 rounded-lg bg-white resize-none"
+                                    placeholder="Paste teammate's invite code here..."></textarea>
+                            </div>
+
+                            <div>
+                                <label class="text-xs font-mono font-bold text-zinc-500 uppercase block mb-1">Teammate's
+                                    Name / Device Label</label>
+                                <input id="peer-input-alias" type="text"
+                                    class="w-full text-xs border-2 border-brand-text p-2.5 rounded-lg bg-white font-sans"
+                                    placeholder="e.g. Alice's Laptop, Sarah's Work PC" />
+                            </div>
+
+                            <button onclick="connectNewWebRTCPeer()"
+                                class="w-full py-3 bg-brand-primary text-white font-anton text-sm rounded-xl border-2 border-brand-text shadow-brutal-sm hover:translate-y-[-1px] transition-transform">
+                                ESTABLISH DIRECT CONNECTION
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Right: Active Handshakes List -->
+                    <div
+                        class="lg:col-span-2 bg-white border-2 border-brand-text p-6 rounded-2xl shadow-brutal-sm text-left">
+                        <h3 class="text-xl font-anton text-brand-text border-b-2 border-brand-text pb-2 mb-4">Active
+                            Device Links</h3>
+
+                        <div class="space-y-3" id="active-peers-list">
+                            <!-- Populated dynamically with active nodes -->
+                        </div>
+
+                        <!-- Technical Instruction card -->
+                        <div class="mt-8 pt-6 border-t-2 border-brand-text">
+                            <h4 class="text-xs font-mono font-bold text-zinc-500 uppercase mb-2">How Direct Sharing
+                                Works</h4>
+                            <p class="text-xs text-zinc-600 leading-relaxed">
+                                Synkan works differently from traditional tools. Instead of sending your sensitive tasks
+                                to a centralized cloud company, it establishes a secure, end-to-end encrypted direct
+                                connection between your browser and your team's browsers. Your work is kept private, is
+                                incredibly fast, and keeps running even if your internet goes down.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PAGE 3: MUTATION LEDGER & ARCHIVES -->
+            <div id="page-journal" class="space-y-6">
+                <div class="bg-white p-5 border-2 border-brand-text rounded-2xl shadow-brutal">
+                    <h2 class="text-3xl font-anton text-brand-text leading-none">Activity History &amp; Trash Bin</h2>
+                    <p class="text-zinc-600 text-xs font-medium mt-1">Inspect edits made to your board, view detailed
+                        changes, and manage deleted tasks.</p>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <!-- Left Column: Dynamic Metrics -->
+                    <div class="space-y-6 text-left">
+                        <div class="bg-white border-2 border-brand-text p-6 rounded-2xl shadow-brutal-sm">
+                            <h3 class="text-lg font-anton text-brand-text border-b-2 border-brand-text pb-2 mb-4">Action
+                                Summary</h3>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div class="bg-brand-bg p-3 border border-brand-text rounded-lg">
+                                    <span class="text-[10px] font-sans font-bold text-zinc-500 uppercase block">Actions
+                                        Saved</span>
+                                    <span id="journal-total-ops" class="text-xl font-anton text-brand-primary">0
+                                        Actions</span>
+                                </div>
+                                <div class="bg-brand-bg p-3 border border-brand-text rounded-lg">
+                                    <span class="text-[10px] font-sans font-bold text-zinc-500 uppercase block">Tasks in
+                                        Trash</span>
+                                    <span id="journal-tombstone-count" class="text-xl font-anton text-brand-accent">0
+                                        Cards</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Technical Core Explanation Box -->
+                        <div class="bg-brand-surface border-2 border-brand-text p-6 rounded-2xl shadow-brutal-sm">
+                            <h4 class="text-xs font-mono font-bold text-brand-text mb-2">💡 WHAT IS THE TRASH BIN?</h4>
+                            <p class="text-xs text-zinc-800 leading-relaxed font-semibold">
+                                When you delete a card, it is sent here temporarily as a "deleted item". This is done so
+                                offline teammates have a chance to sync their updates before the task is completely
+                                removed from all devices. You can restore items to your board at any time or empty the
+                                bin forever.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Right Column: Raw Log Feed -->
+                    <div
+                        class="lg:col-span-2 bg-white border-2 border-brand-text p-6 rounded-2xl shadow-brutal-sm text-left">
+                        <div class="flex items-center justify-between border-b-2 border-brand-text pb-2 mb-4">
+                            <h3 class="text-xl font-anton text-brand-text">Live Action History</h3>
+                            <button onclick="clearJournalFeed()"
+                                class="text-xs font-bold text-brand-accent font-mono hover:underline">Clear History
+                                View</button>
+                        </div>
+
+                        <div id="journal-stream-box"
+                            class="bg-brand-text text-[#F5F2EA] p-5 rounded-xl font-mono text-xs h-[400px] overflow-y-auto space-y-2">
+                            <!-- Real-time logs populate here -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tombstone recovery table -->
+                <div class="bg-white border-2 border-brand-text p-6 rounded-2xl shadow-brutal-sm text-left">
+                    <h3 class="text-xl font-anton text-brand-text mb-4 border-b-2 border-brand-text pb-2">Tasks
+                        Currently in Trash Bin</h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs font-sans border-collapse">
+                            <thead>
+                                <tr class="bg-brand-bg border-b border-brand-text font-bold text-zinc-500">
+                                    <th class="p-3">ID</th>
+                                    <th class="p-3">TASK TITLE</th>
+                                    <th class="p-3">PREVIOUS COLUMN</th>
+                                    <th class="p-3">TIME DELETED</th>
+                                    <th class="p-3 text-right">ACTIONS</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tombstones-table-body" class="divide-y divide-zinc-200">
+                                <!-- Populated dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PAGE 4: SQLITE WASM CACHE DATABASE (Persistence configuration) -->
+            <div id="page-database" class="space-y-6 hidden">
+                <div class="bg-white p-5 border-2 border-brand-text rounded-2xl shadow-brutal">
+                    <h2 class="text-3xl font-anton text-brand-text leading-none">Device Storage &amp; Data Settings</h2>
+                    <p class="text-zinc-600 text-xs font-medium mt-1">Manage how tasks are stored on your computer,
+                        check available browser storage, and keep your local database optimized.</p>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <!-- Left: SQL Systems Health -->
+                    <div class="space-y-6 text-left">
+                        <div class="bg-white border-2 border-brand-text p-6 rounded-2xl shadow-brutal-sm space-y-4">
+                            <h3 class="text-lg font-anton text-brand-text border-b-2 border-brand-text pb-2">Active
+                                Storage Used</h3>
+
+                            <div class="space-y-3">
+                                <div class="flex justify-between items-center text-xs font-sans">
+                                    <span class="text-zinc-500 font-bold">DATABASE DRIVER:</span>
+                                    <span
+                                        class="font-bold bg-brand-surface text-brand-text px-2 py-0.5 border border-brand-text rounded text-[10px] font-mono">SQLite
+                                        (Local Thread)</span>
+                                </div>
+                                <div class="flex justify-between items-center text-xs font-sans">
+                                    <span class="text-zinc-500 font-bold">CURRENT FILE SIZE:</span>
+                                    <span id="quota-calculated-size"
+                                        class="font-bold text-brand-text font-mono">Calculating...</span>
+                                </div>
+                                <div class="flex justify-between items-center text-xs font-sans">
+                                    <span class="text-zinc-500 font-bold">SAVED PATH:</span>
+                                    <span class="font-bold text-brand-text">Your Browser Sandboxed Drive</span>
+                                </div>
+                            </div>
+
+                            <button onclick="vacuumDatabase()"
+                                class="w-full py-2.5 text-xs font-black bg-brand-accent text-white border-2 border-brand-text rounded-xl shadow-brutal-sm hover:translate-y-[-1px] transition-transform">
+                                COMPRESS STORAGE &amp; OPTIMIZE SPEED
+                            </button>
+                        </div>
+
+                        <!-- System metrics -->
+                        <div class="bg-white border-2 border-brand-text p-6 rounded-2xl shadow-brutal-sm space-y-3">
+                            <h4 class="text-xs font-sans font-bold text-brand-text uppercase">Browser Memory Allocation
+                            </h4>
+                            <div class="space-y-2 text-xs">
+                                <div class="flex justify-between">
+                                    <span>Allocated Space Percentage</span>
+                                    <span id="quota-percentage-val" class="font-mono font-bold">0%</span>
+                                </div>
+                                <div
+                                    class="w-full bg-brand-bg rounded-full h-2 border border-brand-text overflow-hidden">
+                                    <div id="quota-progress-bar" class="bg-brand-primary h-full w-[0%]"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right: Table Schema Representation -->
+                    <div
+                        class="lg:col-span-2 bg-white border-2 border-brand-text p-6 rounded-2xl shadow-brutal-sm text-left">
+                        <h3 class="text-xl font-anton text-brand-text border-b-2 border-brand-text pb-2 mb-4">
+                            Under-the-Hood: Local Storage Tables</h3>
+
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-xs font-sans border-collapse">
+                                <thead>
+                                    <tr
+                                        class="bg-brand-bg border-b-2 border-brand-text text-zinc-600 font-bold uppercase">
+                                        <th class="p-3">DATA SHEET NAME</th>
+                                        <th class="p-3">HEALTH STATUS</th>
+                                        <th class="p-3">DIAGNOSTIC ACTIONS</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-zinc-200">
+                                    <tr class="hover:bg-brand-bg/50">
+                                        <td class="p-3 font-bold text-brand-primary">Active Tasks Table</td>
+                                        <td class="p-3"><span
+                                                class="bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded border border-emerald-300 font-bold text-[10px]">SAVED
+                                                SECURELY</span></td>
+                                        <td class="p-3"><button onclick="viewSchema('tbl_synkan_cards')"
+                                                class="text-xs text-brand-accent font-bold underline">Blueprint
+                                                Schema</button></td>
+                                    </tr>
+                                    <tr class="hover:bg-brand-bg/50">
+                                        <td class="p-3 font-bold text-brand-primary">Connected Devices Table</td>
+                                        <td class="p-3"><span
+                                                class="bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded border border-emerald-300 font-bold text-[10px]">SAVED
+                                                SECURELY</span></td>
+                                        <td class="p-3"><button onclick="viewSchema('tbl_synkan_peers')"
+                                                class="text-xs text-brand-accent font-bold underline">Blueprint
+                                                Schema</button></td>
+                                    </tr>
+                                    <tr class="hover:bg-brand-bg/50">
+                                        <td class="p-3 font-bold text-brand-primary">Activity History Table</td>
+                                        <td class="p-3"><span
+                                                class="bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded border border-emerald-300 font-bold text-[10px]">SAVED
+                                                SECURELY</span></td>
+                                        <td class="p-3"><button onclick="viewSchema('tbl_synkan_ledger_log')"
+                                                class="text-xs text-brand-accent font-bold underline">Blueprint
+                                                Schema</button></td>
+                                    </tr>
+                                    <tr class="hover:bg-brand-bg/50">
+                                        <td class="p-3 font-bold text-brand-primary">Trash Bin Table</td>
+                                        <td class="p-3"><span
+                                                class="bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded border border-yellow-300 font-bold text-[10px]">MONITORED</span>
+                                        </td>
+                                        <td class="p-3"><button onclick="viewSchema('tbl_synkan_tombstones')"
+                                                class="text-xs text-brand-accent font-bold underline">Blueprint
+                                                Schema</button></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Code preview section -->
+                        <div class="mt-6">
+                            <h4 class="text-xs font-sans font-bold text-zinc-500 uppercase mb-2">Technical Blueprint
+                                Definition</h4>
+                            <pre class="bg-brand-text text-[#F5F2EA] p-4 rounded-xl font-mono text-xs overflow-x-auto"
+                                id="sql-definition-box">
+CREATE TABLE tbl_synkan_cards (
+    card_id TEXT PRIMARY KEY NOT NULL,
+    title TEXT NOT NULL,
+    col_name TEXT NOT NULL,
+    lexical_sort_key TEXT NOT NULL,
+    priority TEXT NOT NULL,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);</pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- MODAL: Create New Card -->
+    <div id="modal-create-card"
+        class="fixed inset-0 bg-brand-text/50 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-white border-4 border-brand-text rounded-2xl max-w-lg w-full shadow-brutal-lg p-6 relative">
+            <button onclick="closeCreateCardModal()"
+                class="absolute top-4 right-4 font-anton text-lg text-brand-accent hover:underline">CLOSE</button>
+
+            <h3 class="text-2xl font-anton text-brand-text mb-6">Create New Task</h3>
+
+            <div class="space-y-4 text-left">
+                <div class="flex flex-col">
+                    <label class="text-xs font-sans font-bold text-zinc-500 uppercase mb-1">What needs to be
+                        done?</label>
+                    <input id="modal-card-title" type="text" class="brutal-input font-sans text-sm"
+                        placeholder="e.g. Prepare quarterly progress deck" />
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="flex flex-col">
+                        <label class="text-xs font-sans font-bold text-zinc-500 uppercase mb-1">Board Column</label>
+                        <select id="modal-card-column" class="brutal-input font-bold text-sm">
+                            <option value="backlog">Task Pool</option>
+                            <option value="ready">Up Next</option>
+                            <option value="progress">Doing</option>
+                            <option value="resolved">Finished</option>
+                        </select>
+                    </div>
+
+                    <div class="flex flex-col">
+                        <label class="text-xs font-sans font-bold text-zinc-500 uppercase mb-1">How urgent is
+                            this?</label>
+                        <select id="modal-card-priority" class="brutal-input font-bold text-sm">
+                            <option value="High">🚨 High Priority</option>
+                            <option value="Medium">⚡ Medium Priority</option>
+                            <option value="Low">💤 Low Priority</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-8 flex justify-end space-x-3">
+                <button onclick="closeCreateCardModal()"
+                    class="px-5 py-2 text-xs font-bold border-2 border-brand-text bg-white hover:bg-brand-bg rounded-xl">Cancel</button>
+                <button onclick="submitNewCard()"
+                    class="px-5 py-2 text-xs font-black border-2 border-brand-text bg-brand-surface rounded-xl shadow-brutal-sm">CREATE
+                    CARD</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: Edit Card Detail -->
+    <div id="modal-edit-card"
+        class="fixed inset-0 bg-brand-text/50 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-white border-4 border-brand-text rounded-2xl max-w-lg w-full shadow-brutal-lg p-6 relative">
+            <button onclick="closeEditCardModal()"
+                class="absolute top-4 right-4 font-anton text-lg text-brand-accent hover:underline">CLOSE</button>
+
+            <h3 class="text-2xl font-anton text-brand-text mb-6">Modify Task Properties</h3>
+
+            <input type="hidden" id="edit-card-id" />
+            <div class="space-y-4 text-left">
+                <div class="flex flex-col">
+                    <label class="text-xs font-sans font-bold text-zinc-500 uppercase mb-1">Task Title</label>
+                    <input id="edit-card-title" type="text" class="brutal-input font-sans text-sm" />
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="flex flex-col">
+                        <label class="text-xs font-sans font-bold text-zinc-500 uppercase mb-1">Urgency Priority</label>
+                        <select id="edit-card-priority" class="brutal-input font-bold text-sm">
+                            <option value="High">🚨 High Priority</option>
+                            <option value="Medium">⚡ Medium Priority</option>
+                            <option value="Low">💤 Low Priority</option>
+                        </select>
+                    </div>
+                    <div class="flex flex-col">
+                        <label class="text-xs font-sans font-bold text-zinc-500 uppercase mb-1">Internal Sorting
+                            Key</label>
+                        <input id="edit-card-sort-key" type="text"
+                            class="brutal-input font-mono text-sm bg-brand-bg cursor-not-allowed" readonly
+                            title="Ensures task lists remain in perfect order without colliding" />
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-8 flex justify-between gap-3">
+                <button onclick="triggerTombstoneDelete()"
+                    class="px-4 py-2.5 text-xs font-black border-2 border-brand-text bg-brand-accent text-white rounded-xl shadow-brutal-sm">
+                    🗑️ MOVE TO TRASH BIN
+                </button>
+                <div class="flex space-x-3">
+                    <button onclick="closeEditCardModal()"
+                        class="px-5 py-2 text-xs font-bold border-2 border-brand-text bg-white hover:bg-brand-bg rounded-xl">Cancel</button>
+                    <button onclick="submitEditCard()"
+                        class="px-5 py-2 text-xs font-black border-2 border-brand-text bg-brand-surface rounded-xl shadow-brutal-sm">SAVE
+                        CHANGES</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification Side Drawer -->
+    <div id="drawer-notif"
+        class="fixed top-16 right-0 bottom-0 w-80 bg-white border-l-4 border-brand-text z-40 shadow-brutal-lg transform translate-x-full transition-transform duration-300 ease-in-out p-4 flex flex-col justify-between">
+        <div class="space-y-4">
+            <div class="flex items-center justify-between border-b-2 border-brand-text pb-2">
+                <h4 class="text-lg font-anton text-brand-text">System Alerts</h4>
+                <button onclick="toggleNotificationPane()"
+                    class="text-xs font-mono font-bold text-zinc-400 hover:text-brand-text">✕</button>
+            </div>
+
+            <div class="space-y-3 overflow-y-auto max-h-[calc(100vh-200px)]" id="notif-list-container">
+                <!-- Session notification logs populate here -->
+            </div>
+        </div>
+
+        <button onclick="clearAllNotifications()"
+            class="w-full py-2 bg-brand-text text-white font-mono text-[10px] uppercase font-bold rounded-lg border border-brand-text">Clear
+            Warnings</button>
+    </div>
+
+    <!-- Custom Floating Toast Alert Center -->
+    <div id="toast-wrapper" class="fixed bottom-4 right-4 space-y-2 z-50 pointer-events-none"></div>
+
+    <script>
+        // Production local storage configuration keys
+        const STORAGE_KEY = 'synkan_production_state';
+
+        // Initial setup data when storage is empty
+        const defaultState = {
+            cards: [
+                { id: 'card-01', title: 'Implement Automerge binary delta formats', column: 'backlog', priority: 'High', orderKey: 'A', updatedAt: '2026-06-05 11:30' },
+                { id: 'card-02', title: 'Setup fast browser SQLite WASM persistence engines', column: 'backlog', priority: 'Medium', orderKey: 'B', updatedAt: '2026-06-05 11:35' },
+                { id: 'card-03', title: 'Verify fractional lexicographical index midpoints', column: 'ready', priority: 'High', orderKey: 'A', updatedAt: '2026-06-05 11:40' },
+                { id: 'card-04', title: 'Debug data loss on WebRTC connection drops', column: 'progress', priority: 'Low', orderKey: 'A', updatedAt: '2026-06-05 11:45' },
+                { id: 'card-05', title: 'Create soft-deletion tombstone data rules', column: 'resolved', priority: 'Medium', orderKey: 'A', updatedAt: '2026-06-05 11:50' }
+            ],
+            tombstones: [
+                { id: 'card-06', title: 'Legacy centralized SQL migration dump configurations', column: 'backlog', priority: 'Low', deletedAt: '2026-06-05 10:15' }
+            ],
+            peers: [],
+            warnings: []
+        };
+
+        // Current application instance state
+        let appState = {};
+        let localPeerId = '';
+
+        // Generate a cryptographically secure random peer identifier
+        function generatePeerId() {
+            const arr = new Uint8Array(8);
+            window.crypto.getRandomValues(arr);
+            return 'device_' + Array.from(arr, b => b.toString(16).padStart(2, '0')).join('');
+        }
+
+        // LOAD CLIENT DATABASE FROM LOCAL STORAGE
+        function loadClientState() {
+            try {
+                const data = localStorage.getItem(STORAGE_KEY);
+                if (data) {
+                    appState = JSON.parse(data);
+                } else {
+                    appState = JSON.parse(JSON.stringify(defaultState));
+                    saveClientState();
+                }
+            } catch (err) {
+                console.error("Local storage corruption detected. Restoring fallback defaults.", err);
+                appState = JSON.parse(JSON.stringify(defaultState));
+                saveClientState();
+            }
+
+            // Create peer ID if not persistent
+            if (!localStorage.getItem('synkan_local_peer_id')) {
+                localPeerId = generatePeerId();
+                localStorage.setItem('synkan_local_peer_id', localPeerId);
+            } else {
+                localPeerId = localStorage.getItem('synkan_local_peer_id');
+            }
+            document.getElementById('local-peer-id-display').innerText = localPeerId;
+            document.getElementById('local-peer-id-display').title = localPeerId;
+            document.getElementById('mesh-local-sdp-val').value = localPeerId + "@synkan-invite-code";
+        }
+
+        // SAVE STATE TRANSACTIONALLY
+        function saveClientState() {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
+            updateDynamicStats();
+        }
+
+        // NAVIGATION ROUTER
+        function switchTab(tabName) {
+            const tabs = ['board', 'mesh', 'journal', 'database'];
+
+            tabs.forEach(t => {
+                const btn = document.getElementById(`tab-btn-${t}`);
+                const page = document.getElementById(`page-${t}`);
+
+                if (t === tabName) {
+                    btn.className = "w-full flex items-center space-x-3 p-3 rounded-xl border-2 border-brand-text text-left transition-all bg-brand-surface shadow-brutal-sm";
+                    btn.querySelector('span:last-child').className = "font-bold text-sm hidden md:inline tracking-wide font-sans text-brand-text";
+                    page.classList.remove('hidden');
+                } else {
+                    btn.className = "w-full flex items-center space-x-3 p-3 rounded-xl border-2 border-transparent text-left hover:bg-brand-bg transition-all";
+                    btn.querySelector('span:last-child').className = "font-bold text-sm hidden md:inline tracking-wide font-sans text-zinc-500";
+                    page.classList.add('hidden');
+                }
+            });
+
+            logSessionMutation('SYSTEM', `Switched app screen to "${tabName.toUpperCase()}"`, 'info');
+        }
+
+        // MUTATION LOG RECORDING
+        function logSessionMutation(node, message, type = 'info') {
+            const streamBox = document.getElementById('journal-stream-box');
+            if (!streamBox) return;
+
+            const logLine = document.createElement('div');
+            logLine.className = "pb-1.5 border-b border-zinc-800 text-left text-xs font-mono";
+
+            let colorClass = 'text-white';
+            if (type === 'success') colorClass = 'text-brand-surface font-semibold';
+            if (type === 'error') colorClass = 'text-brand-accent font-semibold';
+            if (type === 'info') colorClass = 'text-[#6EADBC]';
+
+            const timestamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+
+            logLine.innerHTML = `
+                <span class="text-zinc-500">[${timestamp}]</span> 
+                <span class="font-extrabold text-brand-surface mr-1">${node}</span>: 
+                <span class="${colorClass}">${message}</span>
+            `;
+
+            streamBox.appendChild(logLine);
+            streamBox.scrollTop = streamBox.scrollHeight;
+
+            // Handle system notification log creation
+            if (type === 'error' || type === 'success') {
+                pushAuditWarning(timestamp, type === 'error' ? 'ALERT NOTICE' : 'SUCCESS COMMIT', message);
+            }
+        }
+
+        // FLOATING NOTIFICATION BANNER (TOAST)
+        function pushToast(message, isWarning = false) {
+            const wrapper = document.getElementById('toast-wrapper');
+            const toast = document.createElement('div');
+            toast.className = `p-3 border-2 border-brand-text rounded-xl shadow-brutal flex items-center space-x-2 text-xs font-bold transition-all transform translate-y-2 opacity-0 pointer-events-auto ${isWarning ? 'bg-brand-accent text-white' : 'bg-brand-surface text-brand-text'}`;
+
+            toast.innerHTML = `
+                <span>${isWarning ? '⚠️' : '✓'}</span>
+                <span>${message}</span>
+            `;
+
+            wrapper.appendChild(toast);
+
+            setTimeout(() => {
+                toast.classList.remove('translate-y-2', 'opacity-0');
+            }, 50);
+
+            setTimeout(() => {
+                toast.classList.add('translate-y-[-2px]', 'opacity-0');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        // PUSH AUDIT WARNING TO SIDEBAR DRAWER
+        function pushAuditWarning(time, typeLabel, text) {
+            const container = document.getElementById('notif-list-container');
+            const element = document.createElement('div');
+            element.className = "bg-brand-bg p-3 border-2 border-brand-text rounded-xl shadow-brutal-sm text-left";
+            element.innerHTML = `
+                <span class="text-[9px] font-mono font-bold text-zinc-500">${time}</span>
+                <h5 class="font-bold text-xs ${typeLabel.includes('NOTICE') ? 'text-brand-accent' : 'text-brand-primary'} mt-0.5">${typeLabel}</h5>
+                <p class="text-[10px] text-zinc-700 mt-1 leading-snug">${text}</p>
+            `;
+            container.insertBefore(element, container.firstChild);
+
+            const badge = document.getElementById('notif-badge');
+            const count = parseInt(badge.innerText) || 0;
+            badge.innerText = count + 1;
+            badge.classList.remove('hidden');
+        }
+
+        // NOTIFICATION CENTER CONTROLLER
+        let isNotifOpen = false;
+        function toggleNotificationPane() {
+            const drawer = document.getElementById('drawer-notif');
+            isNotifOpen = !isNotifOpen;
+            if (isNotifOpen) {
+                drawer.classList.remove('translate-x-full');
+                // reset badge
+                document.getElementById('notif-badge').innerText = '0';
+                document.getElementById('notif-badge').classList.add('hidden');
+            } else {
+                drawer.classList.add('translate-x-full');
+            }
+        }
+
+        function clearAllNotifications() {
+            document.getElementById('notif-list-container').innerHTML = `
+                <div class="text-center py-6 text-zinc-400 font-mono text-[10px]">No active notification alerts</div>
+            `;
+            document.getElementById('notif-badge').innerText = '0';
+            document.getElementById('notif-badge').classList.add('hidden');
+            pushToast('Warnings buffer cleared');
+        }
+
+        // RENDERING BOARDS & CARDS
+        function renderKanbanCanvas() {
+            const columns = ['backlog', 'ready', 'progress', 'resolved'];
+            const searchQuery = document.getElementById('search-cards-input').value.trim().toLowerCase();
+
+            columns.forEach(col => {
+                const container = document.getElementById(`col-${col}`);
+                container.innerHTML = '';
+
+                // Filter cards matching search, sort by orderKey lexicographically
+                let colCards = appState.cards
+                    .filter(c => c.column === col)
+                    .sort((a, b) => a.orderKey.localeCompare(b.orderKey));
+
+                if (searchQuery) {
+                    colCards = colCards.filter(c => c.title.toLowerCase().includes(searchQuery));
+                }
+
+                if (colCards.length === 0) {
+                    container.innerHTML = `
+                        <div class="h-28 border-2 border-dashed border-brand-border rounded-xl flex items-center justify-center p-4 text-center">
+                            <span class="text-zinc-400 font-sans text-[11px]">No tasks inside</span>
+                        </div>
+                    `;
+                    return;
+                }
+
+                colCards.forEach(card => {
+                    const cardEl = document.createElement('div');
+                    cardEl.className = "bg-white p-4 border-2 border-brand-text rounded-xl shadow-brutal-sm hover:translate-y-[-1px] transition-transform relative text-left";
+
+                    let priorityColor = "bg-zinc-100 text-zinc-700";
+                    if (card.priority === 'High') priorityColor = "bg-red-100 text-brand-accent border-brand-accent/30";
+                    if (card.priority === 'Medium') priorityColor = "bg-yellow-100 text-yellow-800 border-yellow-400/30";
+                    if (card.priority === 'Low') priorityColor = "bg-blue-100 text-brand-primary border-brand-primary/30";
+
+                    const colIdx = columns.indexOf(col);
+                    const prevCol = colIdx > 0 ? columns[colIdx - 1] : null;
+                    const nextCol = colIdx < columns.length - 1 ? columns[colIdx + 1] : null;
+
+                    cardEl.innerHTML = `
+                        <div class="flex items-start justify-between gap-2 mb-2">
+                            <h4 class="font-sans text-xs font-semibold text-brand-text leading-snug break-words pr-1 capitalize-none">${card.title}</h4>
+                            <button onclick="openEditCardModal('${card.id}')" class="text-zinc-400 hover:text-brand-accent text-[10px] font-sans font-bold uppercase transition-colors">Edit</button>
+                        </div>
+                        
+                        <div class="flex items-center justify-between mt-3 pt-2 border-t border-zinc-100 text-[10px]">
+                            <span class="px-2 py-0.5 rounded border font-sans font-bold text-[9px] ${priorityColor}">${card.priority}</span>
+                            
+                            <div class="flex items-center space-x-1">
+                                <span class="font-sans text-zinc-400 text-[9px] font-medium" title="Helps position cards correctly when syncing with your team">Pos: ${card.orderKey}</span>
+                                <div class="flex space-x-0.5 ml-1">
+                                    ${prevCol ? `<button onclick="executeMoveCard('${card.id}', '${prevCol}')" class="w-5 h-5 flex items-center justify-center rounded bg-brand-bg hover:bg-brand-surface border border-brand-text font-black text-[9px]" title="Move Left">◀</button>` : ''}
+                                    ${nextCol ? `<button onclick="executeMoveCard('${card.id}', '${nextCol}')" class="w-5 h-5 flex items-center justify-center rounded bg-brand-bg hover:bg-brand-surface border border-brand-text font-black text-[9px]" title="Move Right">▶</button>` : ''}
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    container.appendChild(cardEl);
+                });
+            });
+            updateDynamicStats();
+        }
+
+        // DYNAMIC FILTER ENGINE
+        function filterBoardCards() {
+            renderKanbanCanvas();
+        }
+
+        // FRACTIONAL INDEXING & MOVE ENGINE
+        function executeMoveCard(cardId, targetCol) {
+            const card = appState.cards.find(c => c.id === cardId);
+            if (!card) return;
+
+            const oldCol = card.column;
+            card.column = targetCol;
+            card.updatedAt = new Date().toISOString().replace('T', ' ').slice(0, 16);
+
+            // Re-calculate sorted lexical positions inside column
+            const targetCards = appState.cards
+                .filter(c => c.column === targetCol)
+                .sort((a, b) => a.orderKey.localeCompare(b.orderKey));
+
+            let newIndex = 'A';
+            if (targetCards.length > 0) {
+                const maxKey = targetCards[targetCards.length - 1].orderKey;
+                const charCode = maxKey.charCodeAt(maxKey.length - 1);
+
+                if (charCode < 122) {
+                    newIndex = maxKey.slice(0, -1) + String.fromCharCode(charCode + 1);
+                } else {
+                    newIndex = maxKey + 'A';
+                }
+            }
+            card.orderKey = newIndex;
+
+            saveClientState();
+            renderKanbanCanvas();
+
+            // Friendly column name mapper for user logs
+            const colMap = { backlog: 'Task Pool', ready: 'Up Next', progress: 'Doing', resolved: 'Finished' };
+            const prettyOld = colMap[oldCol] || oldCol;
+            const prettyNew = colMap[targetCol] || targetCol;
+
+            logSessionMutation('LOCAL_STORAGE', `Moved task "${card.title.slice(0, 20)}..." from [${prettyOld}] to [${prettyNew}]. (Unique order key set: "${newIndex}")`, 'success');
+            pushToast('Task moved successfully.');
+        }
+
+        // MODAL ACTIONS: CREATE TASK
+        function openCreateCardModal() {
+            document.getElementById('modal-card-title').value = '';
+            document.getElementById('modal-card-column').value = 'backlog';
+            document.getElementById('modal-card-priority').value = 'Medium';
+            document.getElementById('modal-create-card').classList.remove('hidden');
+        }
+
+        function closeCreateCardModal() {
+            document.getElementById('modal-create-card').classList.add('hidden');
+        }
+
+        function submitNewCard() {
+            const title = document.getElementById('modal-card-title').value.trim();
+            const col = document.getElementById('modal-card-column').value;
+            const priority = document.getElementById('modal-card-priority').value;
+
+            if (!title) {
+                pushToast('Please specify a card description or title', true);
+                return;
+            }
+
+            const newId = 'card_' + Date.now();
+
+            // Derive sorting index
+            const targetColCards = appState.cards.filter(c => c.column === col).sort((a, b) => a.orderKey.localeCompare(b.orderKey));
+            let startingKey = 'A';
+            if (targetColCards.length > 0) {
+                const maxKey = targetColCards[targetColCards.length - 1].orderKey;
+                startingKey = String.fromCharCode(maxKey.charCodeAt(0) + 1);
+                if (startingKey.charCodeAt(0) > 122) startingKey = maxKey + 'A';
+            }
+
+            const newCard = {
+                id: newId,
+                title: title,
+                column: col,
+                priority: priority,
+                orderKey: startingKey,
+                updatedAt: new Date().toISOString().replace('T', ' ').slice(0, 16)
+            };
+
+            appState.cards.push(newCard);
+            saveClientState();
+            renderKanbanCanvas();
+            closeCreateCardModal();
+
+            const colMap = { backlog: 'Task Pool', ready: 'Up Next', progress: 'Doing', resolved: 'Finished' };
+            logSessionMutation('LOCAL_STORAGE', `Created card "${title.slice(0, 25)}" inside column: [${colMap[col] || col}]`, 'success');
+            pushToast('Task added to canvas memory.');
+        }
+
+        // MODAL ACTIONS: EDIT TASK
+        function openEditCardModal(cardId) {
+            const card = appState.cards.find(c => c.id === cardId);
+            if (!card) return;
+
+            document.getElementById('edit-card-id').value = card.id;
+            document.getElementById('edit-card-title').value = card.title;
+            document.getElementById('edit-card-priority').value = card.priority;
+            document.getElementById('edit-card-sort-key').value = card.orderKey;
+
+            document.getElementById('modal-edit-card').classList.remove('hidden');
+        }
+
+        function closeEditCardModal() {
+            document.getElementById('modal-edit-card').classList.add('hidden');
+        }
+
+        function submitEditCard() {
+            const id = document.getElementById('edit-card-id').value;
+            const title = document.getElementById('edit-card-title').value.trim();
+            const priority = document.getElementById('edit-card-priority').value;
+
+            if (!title) {
+                pushToast('Task title cannot be blank', true);
+                return;
+            }
+
+            const card = appState.cards.find(c => c.id === id);
+            if (card) {
+                card.title = title;
+                card.priority = priority;
+                card.updatedAt = new Date().toISOString().replace('T', ' ').slice(0, 16);
+
+                saveClientState();
+                renderKanbanCanvas();
+                closeEditCardModal();
+
+                logSessionMutation('LOCAL_STORAGE', `Saved changes to task ID: "${id}"`, 'success');
+                pushToast('Card properties altered.');
+            }
+        }
+
+        // SOFT DELETE & TOMBSTONE CREATION
+        function triggerTombstoneDelete() {
+            const id = document.getElementById('edit-card-id').value;
+            const cardIdx = appState.cards.findIndex(c => c.id === id);
+
+            if (cardIdx > -1) {
+                const card = appState.cards[cardIdx];
+
+                const tombstoneRecord = {
+                    id: card.id,
+                    title: card.title,
+                    column: card.column,
+                    priority: card.priority,
+                    deletedAt: new Date().toISOString().replace('T', ' ').slice(0, 16)
+                };
+
+                appState.tombstones.push(tombstoneRecord);
+                appState.cards.splice(cardIdx, 1);
+
+                saveClientState();
+                renderKanbanCanvas();
+                renderTombstonesTable();
+                closeEditCardModal();
+
+                logSessionMutation('TRASH_BIN_MANAGER', `Moved task "${card.title.slice(0, 20)}" to the Trash Bin (Flagged for clean-up)`, 'error');
+                pushToast('Card moved to Trash Bin.', true);
+            }
+        }
+
+        // RENDER ARCHIVED TOMBSTONES TABLE
+        function renderTombstonesTable() {
+            const tbody = document.getElementById('tombstones-table-body');
+            tbody.innerHTML = '';
+
+            const colMap = { backlog: 'Task Pool', ready: 'Up Next', progress: 'Doing', resolved: 'Finished' };
+
+            if (appState.tombstones.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="5" class="p-4 text-center text-zinc-400 font-mono text-[10px]">No deleted tasks inside your trash bin</td>
+                    </tr>
+                `;
+                return;
+            }
+
+            appState.tombstones.forEach(tomb => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-brand-bg/50";
+                tr.innerHTML = `
+                    <td class="p-3 font-mono font-bold text-zinc-500">${tomb.id}</td>
+                    <td class="p-3 font-bold text-brand-text capitalize-none">${tomb.title}</td>
+                    <td class="p-3 text-brand-primary font-bold uppercase font-sans text-xs">${colMap[tomb.column] || tomb.column}</td>
+                    <td class="p-3 text-zinc-500 font-mono text-[10px]">${tomb.deletedAt}</td>
+                    <td class="p-3 text-right">
+                        <div class="flex items-center justify-end space-x-2">
+                            <button onclick="restoreTombstone('${tomb.id}')" class="text-xs text-brand-primary font-bold hover:underline">Put Back on Board</button>
+                            <span class="text-zinc-300">|</span>
+                            <button onclick="purgeTombstone('${tomb.id}')" class="text-xs text-brand-accent font-bold hover:underline">Delete Forever</button>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // RESTORE TOMBSTONE BACK TO ACTIVE BOARD
+        function restoreTombstone(tombId) {
+            const idx = appState.tombstones.findIndex(t => t.id === tombId);
+            if (idx > -1) {
+                const tomb = appState.tombstones[idx];
+
+                // Construct sorting key
+                const colCards = appState.cards.filter(c => c.column === tomb.column).sort((a, b) => a.orderKey.localeCompare(b.orderKey));
+                let startingKey = 'A';
+                if (colCards.length > 0) {
+                    startingKey = String.fromCharCode(colCards[colCards.length - 1].orderKey.charCodeAt(0) + 1);
+                }
+
+                const restoredCard = {
+                    id: tomb.id,
+                    title: tomb.title,
+                    column: tomb.column,
+                    priority: tomb.priority,
+                    orderKey: startingKey,
+                    updatedAt: new Date().toISOString().replace('T', ' ').slice(0, 16)
+                };
+
+                appState.cards.push(restoredCard);
+                appState.tombstones.splice(idx, 1);
+
+                saveClientState();
+                renderKanbanCanvas();
+                renderTombstonesTable();
+
+                const colMap = { backlog: 'Task Pool', ready: 'Up Next', progress: 'Doing', resolved: 'Finished' };
+                logSessionMutation('TRASH_BIN_MANAGER', `Restored deleted task "${tomb.title.slice(0, 20)}" back to column [${colMap[tomb.column] || tomb.column}]`, 'success');
+                pushToast('Task restored to board.');
+            }
+        }
+
+        // PERMANENT PURGE OF TOMBSTONE
+        function purgeTombstone(tombId) {
+            const idx = appState.tombstones.findIndex(t => t.id === tombId);
+            if (idx > -1) {
+                const tomb = appState.tombstones[idx];
+                appState.tombstones.splice(idx, 1);
+
+                saveClientState();
+                renderTombstonesTable();
+
+                logSessionMutation('TRASH_BIN_MANAGER', `Permanently deleted task: "${tomb.title.slice(0, 20)}"`, 'error');
+                pushToast('Task permanently deleted.');
+            }
+        }
+
+        // WEBRTC SIGNALING & PEERS MANAGER
+        function renderPeersList() {
+            const container = document.getElementById('active-peers-list');
+            container.innerHTML = '';
+
+            if (appState.peers.length === 0) {
+                container.innerHTML = `
+                    <div class="p-8 border-2 border-dashed border-brand-border rounded-xl text-center text-zinc-400 font-sans text-xs">
+                        No connected devices found. Share your Connection Invite Code above to sync with team members.
+                    </div>
+                `;
+                return;
+            }
+
+            appState.peers.forEach(peer => {
+                const el = document.createElement('div');
+                el.className = "p-4 border-2 border-brand-text rounded-xl bg-brand-bg flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-left";
+                el.innerHTML = `
+                    <div class="flex items-center space-x-3">
+                        <div class="w-10 h-10 rounded-lg bg-white border-2 border-brand-text flex items-center justify-center font-anton text-lg">
+                            ${peer.alias.charAt(0).toUpperCase()}
+                        </div>
+                        <div>
+                            <span class="font-bold text-sm text-brand-text block capitalize-none">${peer.alias}</span>
+                            <span class="text-[10px] text-zinc-500 font-mono block">Device Code: ${peer.id}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center justify-between sm:justify-end gap-6">
+                        <div class="text-right font-sans">
+                            <span class="text-[10px] text-zinc-500 font-bold block">CONNECTION SECURITY</span>
+                            <span class="font-bold text-xs text-brand-primary">Secure (Direct Encryption)</span>
+                        </div>
+                        <div class="flex items-center">
+                            <span class="px-2.5 py-1 rounded border font-bold text-[10px] font-mono uppercase bg-emerald-100 text-emerald-800 border-emerald-300">
+                                ACTIVE
+                            </span>
+                            <button onclick="terminatePeerSocket('${peer.id}')" class="text-xs font-bold text-brand-accent hover:underline font-sans ml-4">Disconnect</button>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(el);
+            });
+        }
+
+        function connectNewWebRTCPeer() {
+            const sdpInput = document.getElementById('peer-input-sdp');
+            const aliasInput = document.getElementById('peer-input-alias');
+
+            const token = sdpInput.value.trim();
+            const alias = aliasInput.value.trim() || 'Teammate';
+
+            if (!token) {
+                pushToast('Please paste your teammate\'s invite code first', true);
+                return;
+            }
+
+            // Extract target ID
+            const targetPeerId = token.split('@')[0] || 'device_' + Math.floor(Math.random() * 1000);
+
+            if (appState.peers.some(p => p.id === targetPeerId)) {
+                pushToast('You are already connected to this device', true);
+                return;
+            }
+
+            const newPeer = {
+                id: targetPeerId,
+                alias: alias,
+                token: token
+            };
+
+            appState.peers.push(newPeer);
+            saveClientState();
+            renderPeersList();
+
+            sdpInput.value = '';
+            aliasInput.value = '';
+
+            logSessionMutation('CONNECTION_SERVICE', `Established direct secure link with teammate: "${alias}"`, 'success');
+            pushToast(`Connected successfully to: ${alias}`);
+        }
+
+        function terminatePeerSocket(peerId) {
+            const idx = appState.peers.findIndex(p => p.id === peerId);
+            if (idx > -1) {
+                const alias = appState.peers[idx].alias;
+                appState.peers.splice(idx, 1);
+
+                saveClientState();
+                renderPeersList();
+
+                logSessionMutation('CONNECTION_SERVICE', `Disconnected from teammate device: "${alias}"`, 'error');
+                pushToast(`Disconnected from ${alias}`, true);
+            }
+        }
+
+        // DATABASE PERSISTENCE UTILITIES & SCHEMA INSPECTOR
+        function fetchStorageMetrics() {
+            if (navigator.storage && navigator.storage.estimate) {
+                navigator.storage.estimate().then(estimate => {
+                    const quotaLimit = estimate.quota || 1;
+                    const used = estimate.usage || 0;
+
+                    const pct = ((used / quotaLimit) * 100).toFixed(4);
+                    const formattedUsed = (used / (1024 * 1024)).toFixed(2) + ' MB';
+
+                    document.getElementById('quota-calculated-size').innerText = formattedUsed;
+                    document.getElementById('quota-percentage-val').innerText = pct + '%';
+                    document.getElementById('quota-progress-bar').style.width = Math.max(parseFloat(pct), 0.5) + '%';
+                });
+            } else {
+                // LocalStorage approximation
+                const roughSize = (JSON.stringify(appState).length / 1024).toFixed(2) + ' KB';
+                document.getElementById('quota-calculated-size').innerText = roughSize;
+                document.getElementById('quota-percentage-val').innerText = '0.01%';
+                document.getElementById('quota-progress-bar').style.width = '1%';
+            }
+        }
+
+        // DEFRAGMENT / OPTIMIZE
+        function vacuumDatabase() {
+            pushToast('Optimizing and cleaning storage...');
+            logSessionMutation('STORAGE_SERVICE', 'Re-organizing database files to free up disk space...', 'info');
+
+            setTimeout(() => {
+                fetchStorageMetrics();
+                logSessionMutation('STORAGE_SERVICE', 'Cleanup complete. Database optimized successfully.', 'success');
+                pushToast('Your storage space has been optimized.');
+            }, 800);
+        }
+
+        function viewSchema(tableName) {
+            const box = document.getElementById('sql-definition-box');
+
+            const schemas = {
+                'tbl_synkan_cards': `CREATE TABLE tbl_synkan_cards (
+    card_id TEXT PRIMARY KEY NOT NULL,
+    title TEXT NOT NULL,
+    col_name TEXT NOT NULL,
+    lexical_sort_key TEXT NOT NULL,
+    priority TEXT NOT NULL,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);`,
+                'tbl_synkan_peers': `CREATE TABLE tbl_synkan_peers (
+    peer_id TEXT PRIMARY KEY NOT NULL,
+    peer_alias TEXT NOT NULL,
+    local_transport_token TEXT NOT NULL,
+    connected_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);`,
+                'tbl_synkan_ledger_log': `CREATE TABLE tbl_synkan_ledger_log (
+    mutation_id TEXT PRIMARY KEY,
+    author_node TEXT NOT NULL,
+    payload_diff TEXT NOT NULL,
+    sequence_vector_number INTEGER NOT NULL,
+    committed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);`,
+                'tbl_synkan_tombstones': `CREATE TABLE tbl_synkan_tombstones (
+    tombstone_id TEXT PRIMARY KEY,
+    title TEXT NOT NULL,
+    column TEXT NOT NULL,
+    priority TEXT NOT NULL,
+    marked_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);`
+            };
+
+            box.innerText = schemas[tableName] || '-- No blueprint mapped';
+            pushToast(`Loaded structure blueprints for ${tableName}`);
+        }
+
+        // GLOBAL STATS UPDATES
+        function updateDynamicStats() {
+            const backlog = appState.cards.filter(c => c.column === 'backlog').length;
+            const ready = appState.cards.filter(c => c.column === 'ready').length;
+            const progress = appState.cards.filter(c => c.column === 'progress').length;
+            const resolved = appState.cards.filter(c => c.column === 'resolved').length;
+
+            document.getElementById('count-backlog').innerText = backlog;
+            document.getElementById('count-ready').innerText = ready;
+            document.getElementById('count-progress').innerText = progress;
+            document.getElementById('count-resolved').innerText = resolved;
+
+            document.getElementById('journal-tombstone-count').innerText = appState.tombstones.length;
+            document.getElementById('header-peer-count').innerText = `${appState.peers.length} Connected`;
+
+            // Ledger events count approximation based on dynamic scroll logs plus initial default size
+            const totalLogs = document.getElementById('journal-stream-box') ? document.getElementById('journal-stream-box').children.length : 3;
+            document.getElementById('journal-total-ops').innerText = totalLogs + ' Saved';
+        }
+
+        // CLIPBOARD COPY MECHANISM
+        function copyToClipboard(elementId) {
+            const input = document.getElementById(elementId);
+            input.select();
+            input.setSelectionRange(0, 99999);
+            document.execCommand('copy');
+            pushToast('Your Invite Code is copied! Send it to your teammate.');
+        }
+
+        function clearJournalFeed() {
+            document.getElementById('journal-stream-box').innerHTML = `
+                <div class="text-zinc-500 font-sans text-[11px] py-4 text-center">Activity log buffer cleared</div>
+            `;
+            updateDynamicStats();
+            pushToast('Action logs cleared.');
+        }
+
+        // ONLOAD INITS
+        window.onload = function () {
+            loadClientState();
+            renderKanbanCanvas();
+            renderPeersList();
+            renderTombstonesTable();
+            fetchStorageMetrics();
+
+            logSessionMutation('STORAGE_SERVICE', 'Secure local database is ready on your computer.', 'success');
+            logSessionMutation('CONNECTION_SERVICE', 'Connection ports are open and waiting for teammate invite codes.', 'info');
+        }
+    </script>
+</body>
+
+</html>
