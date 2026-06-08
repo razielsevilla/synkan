@@ -205,7 +205,7 @@ export default function SandboxSection() {
     }
   };
 
-  const renderColumn = (cardsSource: Card[], columnName: 'backlog' | 'progress', peerLetter: 'A' | 'B') => {
+  const renderColumn = (cardsSource: Card[], columnName: 'backlog' | 'progress') => {
     const filtered = cardsSource
       .filter(c => c.column === columnName)
       .sort((a, b) => a.orderKey.localeCompare(b.orderKey));
@@ -321,7 +321,7 @@ export default function SandboxSection() {
                       if (cardId) moveCardSimulated(cardId, 'A', 'backlog');
                     }}
                   >
-                    {renderColumn(stateA, 'backlog', 'A')}
+                    {renderColumn(stateA, 'backlog')}
                   </div>
                 </div>
                 <div className="bg-brand-bg p-3 rounded-lg border-2 border-brand-text">
@@ -334,7 +334,7 @@ export default function SandboxSection() {
                       if (cardId) moveCardSimulated(cardId, 'A', 'progress');
                     }}
                   >
-                    {renderColumn(stateA, 'progress', 'A')}
+                    {renderColumn(stateA, 'progress')}
                   </div>
                 </div>
               </div>
@@ -386,7 +386,7 @@ export default function SandboxSection() {
                       if (cardId) moveCardSimulated(cardId, 'B', 'backlog');
                     }}
                   >
-                    {renderColumn(stateB, 'backlog', 'B')}
+                    {renderColumn(stateB, 'backlog')}
                   </div>
                 </div>
                 <div className="bg-brand-bg p-3 rounded-lg border-2 border-brand-text">
@@ -399,7 +399,7 @@ export default function SandboxSection() {
                       if (cardId) moveCardSimulated(cardId, 'B', 'progress');
                     }}
                   >
-                    {renderColumn(stateB, 'progress', 'B')}
+                    {renderColumn(stateB, 'progress')}
                   </div>
                 </div>
               </div>
