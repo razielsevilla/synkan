@@ -219,20 +219,18 @@ export default function SandboxSection() {
       if (card.lastEditor === 'Bob') badgeColor = 'bg-brand-accent text-white border-brand-text';
       if (card.lastEditor === 'Initial') badgeColor = 'bg-white text-zinc-500 border-zinc-300';
 
-      const nextCol = columnName === 'backlog' ? 'progress' : 'backlog';
-      const buttonArrow = columnName === 'backlog' ? '👉' : '👈';
-      const buttonLabel = columnName === 'backlog' ? 'Shift to Progress' : 'Shift to Backlog';
-
       return (
-        <div key={card.id} className="bg-white p-3.5 rounded-lg border-2 border-brand-text flex flex-col justify-between hover:translate-y-[-1px] transition-transform shadow-brutal-sm relative text-left">
+        <div 
+          key={card.id} 
+          draggable 
+          onDragStart={(e) => { e.dataTransfer.setData('text/plain', card.id); }}
+          className="bg-white p-3.5 rounded-lg border-2 border-brand-text flex flex-col justify-between hover:translate-y-[-1px] transition-transform shadow-brutal-sm relative text-left cursor-grab active:cursor-grabbing"
+        >
           <div className="text-xs font-bold text-brand-text leading-snug">{card.title}</div>
           <div className="flex items-center justify-between mt-3 pt-2 border-t border-zinc-200 text-[9px]">
             <span className={`px-2 py-0.5 rounded border font-bold ${badgeColor}`}>{card.lastEditor}</span>
             <div className="flex items-center space-x-2">
               <span className="font-mono text-zinc-500 font-bold" title="Fractional Sorting Coordinate">idx: {card.orderKey}</span>
-              <button onClick={() => moveCardSimulated(card.id, peerLetter, nextCol)} className="px-2 py-0.5 rounded bg-brand-surface hover:bg-brand-accent hover:text-white border border-brand-text font-black transition-all" title={buttonLabel}>
-                {buttonArrow}
-              </button>
             </div>
           </div>
         </div>
@@ -315,13 +313,27 @@ export default function SandboxSection() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="bg-brand-bg p-3 rounded-lg border-2 border-brand-text">
                   <span className="text-[10px] font-mono font-extrabold tracking-wider uppercase text-zinc-600 block mb-2 pb-1 border-b border-brand-text">BACKLOG</span>
-                  <div className="space-y-2 min-h-[160px] flex flex-col justify-start">
+                  <div 
+                    className="space-y-2 min-h-[160px] flex flex-col justify-start"
+                    onDragOver={(e) => e.preventDefault()}
+                    onDrop={(e) => {
+                      const cardId = e.dataTransfer.getData('text/plain');
+                      if (cardId) moveCardSimulated(cardId, 'A', 'backlog');
+                    }}
+                  >
                     {renderColumn(stateA, 'backlog', 'A')}
                   </div>
                 </div>
                 <div className="bg-brand-bg p-3 rounded-lg border-2 border-brand-text">
                   <span className="text-[10px] font-mono font-extrabold tracking-wider uppercase text-brand-primary block mb-2 pb-1 border-b border-brand-text">IN PROGRESS</span>
-                  <div className="space-y-2 min-h-[160px] flex flex-col justify-start">
+                  <div 
+                    className="space-y-2 min-h-[160px] flex flex-col justify-start"
+                    onDragOver={(e) => e.preventDefault()}
+                    onDrop={(e) => {
+                      const cardId = e.dataTransfer.getData('text/plain');
+                      if (cardId) moveCardSimulated(cardId, 'A', 'progress');
+                    }}
+                  >
                     {renderColumn(stateA, 'progress', 'A')}
                   </div>
                 </div>
@@ -366,13 +378,27 @@ export default function SandboxSection() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="bg-brand-bg p-3 rounded-lg border-2 border-brand-text">
                   <span className="text-[10px] font-mono font-extrabold tracking-wider uppercase text-zinc-600 block mb-2 pb-1 border-b border-brand-text">BACKLOG</span>
-                  <div className="space-y-2 min-h-[160px] flex flex-col justify-start">
+                  <div 
+                    className="space-y-2 min-h-[160px] flex flex-col justify-start"
+                    onDragOver={(e) => e.preventDefault()}
+                    onDrop={(e) => {
+                      const cardId = e.dataTransfer.getData('text/plain');
+                      if (cardId) moveCardSimulated(cardId, 'B', 'backlog');
+                    }}
+                  >
                     {renderColumn(stateB, 'backlog', 'B')}
                   </div>
                 </div>
                 <div className="bg-brand-bg p-3 rounded-lg border-2 border-brand-text">
                   <span className="text-[10px] font-mono font-extrabold tracking-wider uppercase text-brand-accent block mb-2 pb-1 border-b border-brand-text">IN PROGRESS</span>
-                  <div className="space-y-2 min-h-[160px] flex flex-col justify-start">
+                  <div 
+                    className="space-y-2 min-h-[160px] flex flex-col justify-start"
+                    onDragOver={(e) => e.preventDefault()}
+                    onDrop={(e) => {
+                      const cardId = e.dataTransfer.getData('text/plain');
+                      if (cardId) moveCardSimulated(cardId, 'B', 'progress');
+                    }}
+                  >
                     {renderColumn(stateB, 'progress', 'B')}
                   </div>
                 </div>
@@ -403,7 +429,7 @@ export default function SandboxSection() {
             <h5 className="text-sm font-black uppercase tracking-wider font-mono text-brand-text mb-2">How to test peer conflicts in this simulator:</h5>
             <ol className="list-decimal text-zinc-800 text-xs pl-4 space-y-2 leading-relaxed font-medium">
               <li>Click <strong className="underline font-bold text-brand-accent">"Simulate Network Drop"</strong> above. This stops the active mock WebRTC synchronizer stream between Alice and Bob.</li>
-              <li>Add tasks, or click the shift arrow <span className="bg-white px-1.5 py-0.5 rounded border border-brand-text text-[10px]">👉</span> to move columns inside <strong className="text-brand-primary font-bold">Alice's</strong> dashboard. Then perform actions separately inside <strong className="text-brand-accent font-bold">Bob's</strong> dashboard. Observe how local transactions write independently into their isolated database journals.</li>
+              <li>Add tasks, or drag and drop cards to move them between columns inside <strong className="text-brand-primary font-bold">Alice's</strong> dashboard. Then perform actions separately inside <strong className="text-brand-accent font-bold">Bob's</strong> dashboard. Observe how local transactions write independently into their isolated database journals.</li>
               <li>Click <strong className="underline font-bold text-brand-primary">"Reconnect & Sync"</strong>. Watch the terminals exchange delta vectors, compute midpoints of fractional positions, and converge both client views to identical values deterministically!</li>
             </ol>
           </div>
