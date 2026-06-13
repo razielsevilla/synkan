@@ -3,19 +3,33 @@ import { Modal } from '../ui/Modal';
 import { useAppState } from '../../context/AppStateContext';
 import type { Priority, ColumnType } from '../../types';
 
-interface Props {
+interface CreateCardModalProps {
   isOpen: boolean;
   onClose: () => void;
+  prefilledSprintId?: string;
+  prefilledEpicId?: string;
 }
 
-export const CreateCardModal: React.FC<Props> = ({ isOpen, onClose }) => {
-  const { appState, addCard, addLog } = useAppState();
+export const CreateCardModal: React.FC<CreateCardModalProps> = ({ isOpen, onClose, prefilledSprintId, prefilledEpicId }) => {
+  const { appState, localPeerId, addCard, addLog } = useAppState();
   const [title, setTitle] = useState('');
   const [column, setColumn] = useState<ColumnType>('backlog');
   const [priority, setPriority] = useState<Priority>('Medium');
+  const [assigneeId, setAssigneeId] = useState<string>('');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+  const [storyPoints, setStoryPoints] = useState<number | ''>('');
+  const [epicId, setEpicId] = useState<string>(prefilledEpicId || '');
 
   const handleSubmit = () => {
-    if (!title.trim()) return;
+    if (!title.trim()) {
+      addLog('Task title is required.', 'error');
+      return;
+    }
+    if (!assigneeId) {
+      addLog('You must assign a team member to this task.', 'error');
+      return;
+    }
 
     const colCards = appState.cards.filter(c => c.column === column).sort((a, b) => a.orderKey.localeCompare(b.orderKey));
     let newKey = 'A';
@@ -30,13 +44,22 @@ export const CreateCardModal: React.FC<Props> = ({ isOpen, onClose }) => {
       column,
       priority,
       orderKey: newKey,
-      updatedAt: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      updatedAt: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      sprintId: prefilledSprintId || undefined,
+      epicId: epicId || undefined,
+      assigneeId: assigneeId,
+      startDate: startDate || undefined,
+      endDate: endDate || undefined,
+      storyPoints: storyPoints === '' ? undefined : Number(storyPoints)
     };
 
     addCard(newCard);
 
     addLog(`Created new task: "${newCard.title.slice(0, 15)}..."`, 'success');
     setTitle('');
+    setStartDate('');
+    setEndDate('');
+    setStoryPoints('');
     onClose();
   };
 
@@ -72,6 +95,59 @@ export const CreateCardModal: React.FC<Props> = ({ isOpen, onClose }) => {
               <option value="Medium">⚡ Medium Priority</option>
               <option value="Low">💤 Low Priority</option>
             </select>
+          </div>
+        </div>
+        <div className="grid grid-cols-2 gap-4">
+          <div className="flex flex-col">
+            <label className="text-xs font-sans font-bold text-zinc-500 uppercase mb-1 text-left">Assign To (Required)</label>
+            <select className="brutal-input font-bold text-sm" value={assigneeId} onChange={e => setAssigneeId(e.target.value)}>
+              <option value="" disabled>Select a member...</option>
+              <option value={localPeerId}>Me ({appState.roles[localPeerId] || 'DEV'})</option>
+              {appState.peers.map(p => (
+                <option key={p.id} value={p.id}>{p.alias} ({p.role || 'DEV'})</option>
+              ))}
+            </select>
+          </div>
+          <div className="flex flex-col">
+            <label className="text-xs font-sans font-bold text-zinc-500 uppercase mb-1 text-left">Epic</label>
+            <select className="brutal-input font-bold text-sm" value={epicId} onChange={e => setEpicId(e.target.value)}>
+              <option value="">No Epic</option>
+              {appState.epics.map(e => (
+                <option key={e.id} value={e.id}>{e.title}</option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 border-t-2 border-zinc-200 pt-4">
+          <div className="flex flex-col">
+            <label className="text-xs font-sans font-bold text-zinc-500 uppercase mb-1">Story Pts</label>
+            <input 
+              type="number" 
+              min="0"
+              className="brutal-input font-sans text-sm" 
+              placeholder="e.g. 5"
+              value={storyPoints}
+              onChange={e => setStoryPoints(e.target.value === '' ? '' : Number(e.target.value))}
+            />
+          </div>
+          <div className="flex flex-col">
+            <label className="text-xs font-sans font-bold text-zinc-500 uppercase mb-1">Start Date</label>
+            <input 
+              type="date" 
+              className="brutal-input font-sans text-sm bg-white" 
+              value={startDate}
+              onChange={e => setStartDate(e.target.value)}
+            />
+          </div>
+          <div className="flex flex-col">
+            <label className="text-xs font-sans font-bold text-zinc-500 uppercase mb-1">End Date</label>
+            <input 
+              type="date" 
+              className="brutal-input font-sans text-sm bg-white" 
+              value={endDate}
+              onChange={e => setEndDate(e.target.value)}
+            />
           </div>
         </div>
       </div>
