@@ -15,16 +15,34 @@ export const TutorialModal: React.FC<Props> = ({ isOpen, onClose, onChangeTab })
 
   const steps: { title: string, emoji: string, content: string, tab: TabType }[] = [
     {
+      tab: 'backlog',
+      title: 'Phase 1 & 2: Backlog & Plan',
+      emoji: '📋',
+      content: 'Start here! The Product Owner creates Product Backlog Items (PBIs). Then, start Sprint Planning to break them down into subtasks (cards) and plan your next sprint.'
+    },
+    {
       tab: 'board',
-      title: 'Workspace Board',
-      emoji: '🏗️',
-      content: 'This is your main Kanban board. Click the + button in any column to add a task, and drag cards to move them. Double-click a card to edit it.'
+      title: 'Phase 3: Active Sprint',
+      emoji: '🏃',
+      content: 'Once a sprint is active, Developers work on tasks here. You will be prompted for a Mandatory Daily Standup before you can access the board every day.'
+    },
+    {
+      tab: 'ceremonies',
+      title: 'Scrum Ceremonies',
+      emoji: '📅',
+      content: 'Ceremonies are strictly tied to the active phase. Conduct Daily Standups, then when the sprint ends, lock the board to perform your Sprint Review and Retrospective.'
+    },
+    {
+      tab: 'analytics',
+      title: 'Metrics & Charts',
+      emoji: '📈',
+      content: 'Track your team\'s progress locally. View your active sprint burndown chart and historical velocity without sending data to the cloud.'
     },
     {
       tab: 'mesh',
-      title: 'Connect & Sync',
+      title: 'Connect & Assign Roles',
       emoji: '📡',
-      content: 'Share your Board Invite Code with teammates. Once they join, Synkan creates a direct secure tunnel between your browsers to sync data instantly.'
+      content: 'Share your Invite Code. Once teammates join securely via peer-to-peer, the Product Owner or Scrum Master can assign them Scrum Roles (PO, SM, DEV).'
     },
     {
       tab: 'journal',

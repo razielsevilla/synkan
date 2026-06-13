@@ -1,20 +1,40 @@
 import React from 'react';
 import { useAppState } from '../../context/AppStateContext';
+import type { ScrumRole } from '../../types';
 
 export const MeshView: React.FC = () => {
-  const { appState, addLog, activeRoom } = useAppState();
-  const copyToClipboard = () => {
-    if (activeRoom) {
-      navigator.clipboard.writeText(activeRoom);
-      addLog('Copied Board Invite Code to clipboard.', 'success');
-    }
+  const { appState, localPeerId, addLog, activeRoom, assignRole, addInvite } = useAppState();
+  
+  const myRole = appState.roles[localPeerId] || 'DEV';
+  const canAssignRoles = myRole === 'PO' || myRole === 'SM';
+
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+    addLog('Copied Board Invite Code to clipboard.', 'success');
+  };
+
+  const generateAndCopyInvite = (role: ScrumRole) => {
+    if (!activeRoom) return;
+    const token = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+    addInvite(token, role);
+    const inviteLink = `${activeRoom}__${token}`;
+    navigator.clipboard.writeText(inviteLink);
+    addLog(`Generated and copied secure ${role} Invite Link!`, 'success');
   };
 
   return (
     <div className="space-y-6">
-      <div className="bg-white p-5 border-2 border-brand-text rounded-2xl shadow-brutal">
-        <h2 className="text-3xl font-anton text-brand-text leading-none">Direct Teammate Connections</h2>
-        <p className="text-zinc-600 text-xs font-medium mt-1">Connect directly with team members around you. No intermediate cloud database is used—just computer-to-computer.</p>
+      <div className="bg-white p-5 border-2 border-brand-text rounded-2xl shadow-brutal flex justify-between items-center">
+        <div>
+          <h2 className="text-3xl font-anton text-brand-text leading-none">Direct Teammate Connections</h2>
+          <p className="text-zinc-600 text-xs font-medium mt-1">Connect directly with team members around you. No intermediate cloud database is used—just computer-to-computer.</p>
+        </div>
+        <div className="text-right">
+          <span className="block text-[10px] font-bold text-zinc-500 uppercase">My Role</span>
+          <span className={`px-3 py-1 font-bold rounded border-2 shadow-brutal-sm ${myRole === 'PO' ? 'bg-brand-primary text-white border-brand-text' : myRole === 'SM' ? 'bg-brand-accent border-brand-text' : 'bg-zinc-200 border-zinc-400'}`}>
+            {myRole === 'PO' ? 'Product Owner' : myRole === 'SM' ? 'Scrum Master' : 'Developer'}
+          </span>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -23,16 +43,34 @@ export const MeshView: React.FC = () => {
 
           <div className="space-y-4">
             <div>
-              <p className="text-[11px] text-zinc-500 mb-2 leading-snug">Copy this code and send it to your teammates. They can use it to join this exact board from their device.</p>
-              <div className="flex gap-2">
-                <input 
-                  readOnly 
-                  type="text" 
-                  value={activeRoom || ''}
-                  className="w-full text-xs font-mono border-2 border-brand-text p-2.5 rounded-lg bg-brand-bg" 
-                />
-                <button onClick={copyToClipboard} className="px-3 bg-brand-surface border-2 border-brand-text rounded-lg font-bold text-xs hover:bg-white" title="Copy Invitation Key">Copy</button>
-              </div>
+              <p className="text-[11px] text-zinc-500 mb-4 leading-snug">Generate secure, multi-use invite links for specific roles. Teammates using these links will automatically join with the assigned role.</p>
+              
+              {canAssignRoles ? (
+                <div className="flex flex-col gap-3">
+                  <button onClick={() => generateAndCopyInvite('PO')} className="w-full px-4 py-2 bg-brand-primary text-white border-2 border-brand-text rounded-xl font-bold text-xs hover:translate-y-[-2px] transition-transform shadow-brutal-sm text-left flex justify-between items-center">
+                    <span>Copy Product Owner Invite</span>
+                    <span className="text-lg">🔗</span>
+                  </button>
+                  <button onClick={() => generateAndCopyInvite('SM')} className="w-full px-4 py-2 bg-brand-accent text-brand-text border-2 border-brand-text rounded-xl font-bold text-xs hover:translate-y-[-2px] transition-transform shadow-brutal-sm text-left flex justify-between items-center">
+                    <span>Copy Scrum Master Invite</span>
+                    <span className="text-lg">🔗</span>
+                  </button>
+                  <button onClick={() => generateAndCopyInvite('DEV')} className="w-full px-4 py-2 bg-white text-brand-text border-2 border-brand-text rounded-xl font-bold text-xs hover:translate-y-[-2px] transition-transform shadow-brutal-sm text-left flex justify-between items-center">
+                    <span>Copy Developer Invite</span>
+                    <span className="text-lg">🔗</span>
+                  </button>
+                </div>
+              ) : (
+                <div className="flex gap-2">
+                  <input 
+                    readOnly 
+                    type="text" 
+                    value={activeRoom || ''}
+                    className="w-full text-xs font-mono border-2 border-brand-text p-2.5 rounded-lg bg-brand-bg" 
+                  />
+                  <button onClick={() => copyToClipboard(activeRoom || '')} className="px-3 bg-brand-surface border-2 border-brand-text rounded-lg font-bold text-xs hover:bg-white" title="Copy Invitation Key">Copy</button>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -70,9 +108,26 @@ export const MeshView: React.FC = () => {
                     </h5>
                     <span className="text-[10px] font-mono text-zinc-500 block mt-1">ID: {peer.id}</span>
                   </div>
-                  <span className="text-[10px] font-bold px-2 py-1 bg-brand-surface border border-brand-text rounded-md uppercase">
-                    {peer.status}
-                  </span>
+                  <div className="flex items-center gap-3">
+                    {canAssignRoles ? (
+                      <select
+                        className="text-xs font-bold p-1 border-2 border-brand-text rounded bg-white shadow-brutal-sm"
+                        value={peer.role || 'DEV'}
+                        onChange={(e) => assignRole(peer.id, e.target.value as any)}
+                      >
+                        <option value="PO">Product Owner</option>
+                        <option value="SM">Scrum Master</option>
+                        <option value="DEV">Developer</option>
+                      </select>
+                    ) : (
+                      <span className="text-xs font-bold px-2 py-1 bg-zinc-200 border-2 border-zinc-400 rounded">
+                        {peer.role === 'PO' ? 'Product Owner' : peer.role === 'SM' ? 'Scrum Master' : 'Developer'}
+                      </span>
+                    )}
+                    <span className="text-[10px] font-bold px-2 py-1 bg-brand-surface border border-brand-text rounded-md uppercase">
+                      {peer.status}
+                    </span>
+                  </div>
                 </div>
               ))
             )}

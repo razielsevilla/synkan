@@ -26,33 +26,43 @@ export const OnboardingView: React.FC = () => {
       addLog('Please enter your name and the invite code.', 'error');
       return;
     }
-    setBoardAndAlias(inviteCode.trim(), alias.trim());
-    addLog(`Joined board: ${inviteCode}`, 'success');
+
+    let targetBoardId = inviteCode.trim();
+    let token: string | undefined = undefined;
+
+    if (targetBoardId.includes('__')) {
+      const parts = targetBoardId.split('__');
+      targetBoardId = parts[0];
+      token = parts[1];
+    }
+
+    setBoardAndAlias(targetBoardId, alias.trim(), undefined, token);
+    addLog(`Joined board: ${targetBoardId}`, 'success');
   };
 
   return (
     <div className="fixed inset-0 bg-brand-bg flex items-center justify-center p-4 z-50">
-      <div className="max-w-md w-full bg-white border-4 border-brand-text shadow-brutal p-8 rounded-2xl flex flex-col items-center">
+      <div className="max-w-md w-full bg-white border-4 border-brand-text shadow-brutal p-6 sm:p-8 rounded-2xl flex flex-col items-center">
         
-        <div className="w-16 h-16 bg-brand-primary border-2 border-brand-text flex items-center justify-center font-anton text-3xl text-brand-text shadow-brutal-sm rounded-xl mb-6">
+        <div className="w-14 h-14 sm:w-16 sm:h-16 bg-brand-primary border-2 border-brand-text flex items-center justify-center font-anton text-2xl sm:text-3xl text-brand-text shadow-brutal-sm rounded-xl mb-6">
           S
         </div>
-        <h1 className="text-4xl font-anton text-brand-text mb-2 text-center">WELCOME TO SYNKAN</h1>
-        <p className="text-zinc-600 text-sm font-medium text-center mb-8">
+        <h1 className="text-3xl sm:text-4xl font-anton text-brand-text mb-2 text-center leading-none">WELCOME TO SYNKAN</h1>
+        <p className="text-zinc-600 text-xs sm:text-sm font-medium text-center mb-6 sm:mb-8">
           The local-first, peer-to-peer Kanban board. No cloud, no logins.
         </p>
 
         {mode === 'SELECT' && (
-          <div className="w-full space-y-4">
+          <div className="w-full space-y-3 sm:space-y-4">
             <button 
               onClick={() => setMode('CREATE')}
-              className="w-full py-4 bg-brand-primary text-white font-anton text-xl rounded-xl border-2 border-brand-text shadow-brutal-sm hover:translate-y-[-2px] transition-transform"
+              className="w-full py-3 sm:py-4 bg-brand-primary text-white font-anton text-lg sm:text-xl rounded-xl border-2 border-brand-text shadow-brutal-sm hover:translate-y-[-2px] transition-transform leading-none"
             >
               CREATE NEW BOARD
             </button>
             <button 
               onClick={() => setMode('JOIN')}
-              className="w-full py-4 bg-white text-brand-text font-anton text-xl rounded-xl border-2 border-brand-text shadow-brutal-sm hover:translate-y-[-2px] transition-transform"
+              className="w-full py-3 sm:py-4 bg-white text-brand-text font-anton text-lg sm:text-xl rounded-xl border-2 border-brand-text shadow-brutal-sm hover:translate-y-[-2px] transition-transform leading-none"
             >
               JOIN EXISTING BOARD
             </button>
