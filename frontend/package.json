@@ -13,8 +13,11 @@
     "@fontsource/anton": "^5.2.7",
     "@fontsource/jetbrains-mono": "^5.2.8",
     "@fontsource/work-sans": "^5.2.8",
+    "date-fns": "^4.4.0",
+    "lucide-react": "^1.18.0",
     "react": "^19.2.6",
     "react-dom": "^19.2.6",
+    "recharts": "^3.8.1",
     "y-indexeddb": "^9.0.12",
     "y-webrtc": "^10.3.0",
     "yjs": "^13.6.31"
