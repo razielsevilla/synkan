@@ -10,22 +10,22 @@ export const Header: React.FC<HeaderProps> = ({ onToggleNotif }) => {
 
   return (
     <header className="h-16 border-b-4 border-brand-text bg-white flex items-center justify-between px-4 sm:px-6 z-30">
-      <div className="flex items-center space-x-3">
-        <div className="w-10 h-10 rounded-lg bg-brand-surface border-2 border-brand-text flex items-center justify-center shadow-brutal-sm">
-          <span className="font-anton text-xl text-brand-text">S</span>
+      <div className="flex items-center space-x-2 sm:space-x-3">
+        <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-brand-surface border-2 border-brand-text flex items-center justify-center shadow-brutal-sm">
+          <span className="font-anton text-lg sm:text-xl text-brand-text">S</span>
         </div>
         <div>
-          <span className="font-anton text-2xl tracking-wide text-brand-text hidden sm:inline-block">Synkan</span>
-          <span className="font-anton text-2xl tracking-wide text-brand-text inline-block sm:hidden">S</span>
-          <span className="ml-2 inline-flex items-center px-1.5 py-0.5 rounded border border-brand-text text-[9px] font-mono bg-brand-surface font-bold text-brand-text">SECURE & PRIVATE</span>
+          <span className="font-anton text-xl sm:text-2xl tracking-wide text-brand-text hidden sm:inline-block">Synkan</span>
+          <span className="font-anton text-xl tracking-wide text-brand-text inline-block sm:hidden">Synkan</span>
+          <span className="ml-2 hidden md:inline-flex items-center px-1.5 py-0.5 rounded border border-brand-text text-[9px] font-mono bg-brand-surface font-bold text-brand-text">SECURE & PRIVATE</span>
         </div>
       </div>
 
       <div className="flex items-center space-x-2 sm:space-x-6">
-        <div className="flex items-center space-x-2 bg-brand-bg border-2 border-brand-text px-3 py-1 rounded-lg text-xs font-mono font-bold">
+        <div className="flex items-center space-x-1 sm:space-x-2 bg-brand-bg border-2 border-brand-text px-2 sm:px-3 py-1 rounded-lg text-xs font-mono font-bold">
           <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 border border-brand-text"></span>
           <span className="text-brand-text hidden md:inline">DIRECT SYNC IS LIVE</span>
-          <span className="text-brand-text md:hidden">SYNC ON</span>
+          <span className="text-brand-text hidden sm:inline md:hidden">SYNC ON</span>
         </div>
         <div className="hidden lg:flex items-center space-x-2 font-mono text-[11px] text-zinc-500">
           <span>ACTIVE TEAMMATES: <strong className="text-brand-primary">{appState.peers.length} Connected</strong></span>

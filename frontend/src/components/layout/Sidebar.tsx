@@ -1,7 +1,7 @@
 import React from 'react';
 import { useAppState } from '../../context/AppStateContext';
 
-export type TabType = 'board' | 'mesh' | 'journal' | 'database';
+export type TabType = 'board' | 'backlog' | 'ceremonies' | 'analytics' | 'mesh' | 'journal' | 'database';
 
 interface SidebarProps {
   currentTab: TabType;
@@ -17,16 +17,19 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentTab, setTab }) => {
   };
 
   const tabs = [
-    { id: 'board', icon: '📁', label: 'Workspace Board' },
+    { id: 'board', icon: '🏃', label: 'Active Sprint' },
+    { id: 'backlog', icon: '📋', label: 'Backlog & Plan' },
+    { id: 'ceremonies', icon: '📅', label: 'Scrum Ceremonies' },
+    { id: 'analytics', icon: '📈', label: 'Metrics & Charts' },
     { id: 'mesh', icon: '🕸️', label: 'Connect & Sync' },
     { id: 'journal', icon: '📓', label: 'History & Trash' },
     { id: 'database', icon: '💾', label: 'Data & Storage' }
   ] as const;
 
   return (
-    <aside className="w-16 md:w-64 border-r-4 border-brand-text bg-white flex flex-col justify-between z-20">
-      <nav className="p-3 space-y-2">
-        <div className="hidden md:block px-3 py-2 text-[10px] font-mono font-bold uppercase text-zinc-400 tracking-wider">
+    <aside className="fixed bottom-0 left-0 w-full md:relative md:w-64 border-t-4 md:border-t-0 md:border-r-4 border-brand-text bg-white flex flex-col justify-between z-20 pb-2 md:pb-0">
+      <nav className="flex flex-row md:flex-col overflow-x-auto p-2 md:p-3 space-x-2 md:space-x-0 md:space-y-2 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] items-center md:items-stretch">
+        <div className="hidden md:block px-3 py-2 text-[10px] font-mono font-bold uppercase text-zinc-400 tracking-wider flex-shrink-0">
           My Workspace
         </div>
         
@@ -36,11 +39,12 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentTab, setTab }) => {
             <button 
               key={tab.id}
               onClick={() => handleTabChange(tab.id)}
-              className={`w-full flex items-center space-x-3 p-3 rounded-xl border-2 text-left transition-all ${
+              className={`flex-shrink-0 flex items-center justify-center md:justify-start md:space-x-3 p-3 rounded-xl border-2 transition-all ${
                 isActive ? 'border-brand-text bg-brand-surface shadow-brutal-sm' : 'border-transparent hover:bg-brand-bg'
               }`}
+              title={tab.label}
             >
-              <span className="text-lg">{tab.icon}</span>
+              <span className="text-2xl md:text-lg leading-none">{tab.icon}</span>
               <span className={`font-bold text-sm hidden md:inline tracking-wide font-sans ${isActive ? 'text-brand-text' : 'text-zinc-500'}`}>
                 {tab.label}
               </span>

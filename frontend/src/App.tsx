@@ -5,12 +5,16 @@ import { Sidebar } from './components/layout/Sidebar';
 import type { TabType } from './components/layout/Sidebar';
 import { NotificationDrawer } from './components/layout/NotificationDrawer';
 import { BoardView } from './components/views/BoardView';
+import { BacklogView } from './components/views/BacklogView';
+import { CeremoniesView } from './components/views/CeremoniesView';
+import { AnalyticsView } from './components/views/AnalyticsView';
 import { MeshView } from './components/views/MeshView';
 import { JournalView } from './components/views/JournalView';
 import { DatabaseView } from './components/views/DatabaseView';
 import { OnboardingView } from './components/views/OnboardingView';
 import { TutorialModal } from './components/modals/TutorialModal';
 import { useAppState } from './context/AppStateContext';
+import { DailyStandupInterceptor } from './components/views/DailyStandupInterceptor';
 
 function AppContent() {
   const { activeRoom } = useAppState();
@@ -40,11 +44,14 @@ function AppContent() {
     <div className="h-full flex flex-col overflow-hidden">
       <Header onToggleNotif={() => setIsNotifOpen(!isNotifOpen)} />
       
-      <div className="flex-1 flex overflow-hidden relative">
+      <div className="flex-1 flex flex-col md:flex-row overflow-hidden relative">
         <Sidebar currentTab={currentTab} setTab={setCurrentTab} />
         
-        <main className="flex-1 overflow-y-auto p-4 sm:p-6 relative focus:outline-none bg-brand-bg">
+        <main className="flex-1 overflow-y-auto p-4 sm:p-6 pb-20 md:pb-6 relative focus:outline-none bg-brand-bg">
           {currentTab === 'board' && <BoardView />}
+          {currentTab === 'backlog' && <BacklogView />}
+          {currentTab === 'ceremonies' && <CeremoniesView />}
+          {currentTab === 'analytics' && <AnalyticsView />}
           {currentTab === 'mesh' && <MeshView />}
           {currentTab === 'journal' && <JournalView />}
           {currentTab === 'database' && <DatabaseView />}
@@ -52,6 +59,7 @@ function AppContent() {
 
         <NotificationDrawer isOpen={isNotifOpen} onClose={() => setIsNotifOpen(false)} />
         <TutorialModal isOpen={showTutorial} onClose={closeTutorial} onChangeTab={setCurrentTab} />
+        <DailyStandupInterceptor />
       </div>
     </div>
   );
